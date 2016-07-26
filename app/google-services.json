@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "220478384546",
+    "firebase_url": "https://meethere-9d8d4.firebaseio.com",
+    "project_id": "meethere-9d8d4",
+    "storage_bucket": "meethere-9d8d4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:220478384546:android:a087648b5c8b6a73",
+        "android_client_info": {
+          "package_name": "com.jacobzipper.meetHere"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "220478384546-pnc0a10lpe48fn7fca0rodk034c8mjd7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAXqv8QOLvkcWBh9Fcw48Ayq5J00KJlCcg"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
