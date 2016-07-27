@@ -1,0 +1,38 @@
+<RelativeLayout android:layout_height="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"><fragment xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_marginTop="50dp"
+    android:layout_height="match_parent"
+    android:id="@+id/map"
+    tools:context=".SexyMapFragment"
+    android:name="com.google.android.gms.maps.SupportMapFragment" />
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:text="FOOD"
+        android:id="@+id/foodButton"
+        android:layout_alignParentTop="true"
+        android:layout_toStartOf="@+id/funButton" />
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:text="FUN"
+        android:id="@+id/funButton"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:text="Study"
+        android:id="@+id/studyButton"
+        android:layout_alignParentTop="true"
+        android:layout_toEndOf="@+id/funButton" />
+</RelativeLayout>

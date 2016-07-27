@@ -1,21 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:padding="15dp">
 
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/registerName"
-        android:layout_marginTop="195dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true" />
+        android:layout_below="@+id/register"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp"
+        android:hint="username" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="REGISTER"
         android:id="@+id/register"
-        android:layout_below="@+id/registerName"
+        android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/registerPass"
+        android:layout_below="@+id/registerName"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:hint="password"
+        android:inputType="textPassword" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/registerRealName"
+        android:layout_below="@+id/registerPass"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:hint="real name" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/registerPhone"
+        android:layout_below="@+id/registerRealName"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:hint="phone number"
+        android:inputType="phone" />
 </RelativeLayout>

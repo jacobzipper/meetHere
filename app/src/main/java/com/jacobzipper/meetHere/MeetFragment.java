@@ -2,8 +2,8 @@ package com.jacobzipper.meetHere;
 
 import android.annotation.TargetApi;
 import android.app.Fragment;
-import android.app.FragmentManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -42,6 +42,7 @@ public class MeetFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        MainActivity.checked.clear();
         askPermsAndLocation();
         new Thread() {
             public void run() {
@@ -108,7 +109,7 @@ public class MeetFragment extends Fragment {
                         LocationManager lm = (LocationManager) MainActivity.mainContext.getSystemService(Context.LOCATION_SERVICE);
                         if (ActivityCompat.checkSelfPermission(MainActivity.mainContext, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(MainActivity.mainContext, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {}
                         Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                        HttpURLConnection connection = (HttpURLConnection) (new URL("http://jacobzipper.com/meetHere/update.php")).openConnection();
+                        HttpURLConnection connection = (HttpURLConnection) (new URL("http://jacobzipper.com/meetmethere/update.php")).openConnection();
                         connection.setDoOutput(true);
                         String content = "name="+ URLEncoder.encode(prefs.getString("name","Default"))+"&curLat="+URLEncoder.encode(location.getLatitude()+"")+"&curLong="+URLEncoder.encode(location.getLongitude()+"");
                         connection.setRequestMethod("POST");
@@ -153,9 +154,7 @@ public class MeetFragment extends Fragment {
             public void onClick(View view) {
                 checked.add(prefs.getString("name","Default"));
                 MainActivity.checked = checked;
-                final Fragment fragment = new YelpFragment();
-                FragmentManager fragmentManager = getFragmentManager();
-                fragmentManager.beginTransaction().replace(R.id.mainContent, fragment).commit();
+                startActivity(new Intent(MainActivity.mainContext,SexyMapFragment.class));
 
             }
         });
