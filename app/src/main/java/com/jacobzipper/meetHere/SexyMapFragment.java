@@ -2,6 +2,7 @@ package com.jacobzipper.meetHere;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -164,7 +165,7 @@ public class SexyMapFragment extends FragmentActivity implements GoogleMap.OnInf
         search(curTerm);
         while(!searchDone);
         searchDone = false;
-        mMap.addMarker(new MarkerOptions().position(new LatLng(MainActivity.midLat,MainActivity.midLong)).title("MIDPOINT").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN)));
+        mMap.addMarker(new MarkerOptions().position(new LatLng(MainActivity.midLat,MainActivity.midLong)).title("MIDPOINT").icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(),R.mipmap.ic_launcher))));
         for(Business business : businesses) {
             mMap.addMarker(new MarkerOptions().position(new LatLng(business.location().coordinate().latitude(),business.location().coordinate().longitude())).title(business.name()).snippet(business.snippetText()).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
         }
