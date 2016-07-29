@@ -40,8 +40,7 @@ public class MeetFragment extends Fragment {
 
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         MainActivity.checked.clear();
         askPermsAndLocation();
         new Thread() {
@@ -155,7 +154,6 @@ public class MeetFragment extends Fragment {
                 checked.add(prefs.getString("name","Default"));
                 MainActivity.checked = checked;
                 startActivity(new Intent(MainActivity.mainContext,SexyMapFragment.class));
-
             }
         });
     }

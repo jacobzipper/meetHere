@@ -40,6 +40,8 @@ public class MainActivity extends FragmentActivity {
     ListView mDrawerList;
     RelativeLayout mDrawerPane;
     private DrawerLayout mDrawerLayout;
+    boolean registerClicked = false;
+    boolean loginClicked = false;
 
     ArrayList<NavItem> mNavItems = new ArrayList<NavItem>();
     @Override
@@ -51,6 +53,35 @@ public class MainActivity extends FragmentActivity {
         startService(new Intent(this,BackgroundService.class));
         if (prefs.getString("name", "Default").equals("Default")) {
             setContentView(R.layout.activity_register);
+            new Thread() {
+                public void run() {
+                    while(!registerClicked) {
+                        final String nameText = ((EditText) findViewById(R.id.registerName)).getText().toString();
+                        final String passText = ((EditText) findViewById(R.id.registerPass)).getText().toString();
+                        final String realNameText = ((EditText) findViewById(R.id.registerRealName)).getText().toString();
+                        final String phoneText = ((EditText) findViewById(R.id.registerPhone)).getText().toString();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                ((EditText) findViewById(R.id.registerName)).setText(nameText.replace(" ",""));
+                                if(!nameText.equals("") && !passText.equals("") && !realNameText.equals("") && !phoneText.equals("")) {
+                                    findViewById(R.id.register).setClickable(true);
+                                    findViewById(R.id.register).setAlpha(1f);
+                                }
+                                else {
+                                    findViewById(R.id.register).setClickable(false);
+                                    findViewById(R.id.register).setAlpha(.2f);
+                                }
+                            }
+                        });
+                        try {
+                            this.sleep(50);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }.start();
             findViewById(R.id.register).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -87,9 +118,11 @@ public class MainActivity extends FragmentActivity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
+                                    registerClicked = true;
                                     mainUI();
                                 }
                             });
+
 
                         }
                     }.start();
@@ -100,6 +133,32 @@ public class MainActivity extends FragmentActivity {
         }
         else if(prefs.getString("loggedIn","Default").equals("false")) {
             setContentView(R.layout.activity_login);
+            new Thread() {
+                public void run() {
+                    while(!loginClicked) {
+                        final String nameText = ((EditText) findViewById(R.id.userNameEntry)).getText().toString();
+                        final String passText = ((EditText) findViewById(R.id.passwordEntry)).getText().toString();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if(!nameText.equals("") && !passText.equals("")) {
+                                    findViewById(R.id.loginButton).setClickable(true);
+                                    findViewById(R.id.loginButton).setAlpha(1f);
+                                }
+                                else {
+                                    findViewById(R.id.loginButton).setClickable(false);
+                                    findViewById(R.id.loginButton).setAlpha(.2f);
+                                }
+                            }
+                        });
+                        try {
+                            this.sleep(50);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }.start();
             findViewById(R.id.loginButton).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -140,6 +199,7 @@ public class MainActivity extends FragmentActivity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
+                                    loginClicked = true;
                                     mainUI();
                                 }
                             });
@@ -160,8 +220,9 @@ public class MainActivity extends FragmentActivity {
         mNavItems.add(new NavItem("Home", "", R.mipmap.home));
         mNavItems.add(new NavItem("meetHere", "Find a place to meet with your friends!", R.mipmap.ic_launcher));
         mNavItems.add(new NavItem("Friends", "Manage your friends!", R.mipmap.friend));
-        mNavItems.add(new NavItem("Pending", "Accept or deny new friends!", R.mipmap.friend));
-        mNavItems.add(new NavItem("Logout","",R.mipmap.ic_launcher));
+        mNavItems.add(new NavItem("Pending", "Accept or deny new friends!", R.mipmap.pending));
+        mNavItems.add(new NavItem("Help","Email us with anything you'd like to tell us.",R.mipmap.help));
+        mNavItems.add(new NavItem("Logout","",R.mipmap.logout));
 
         // DrawerLayout
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
@@ -216,6 +277,12 @@ public class MainActivity extends FragmentActivity {
         }
         else if(mNavItems.get(position).mTitle.equals("Pending")) {
             final Fragment fragment = new PendingFragment();
+            FragmentManager fragmentManager = getFragmentManager();
+            fragmentManager.beginTransaction().replace(R.id.mainContent, fragment).commit();
+
+        }
+        else if(mNavItems.get(position).mTitle.equals("Help")) {
+            final Fragment fragment = new HelpFragment();
             FragmentManager fragmentManager = getFragmentManager();
             fragmentManager.beginTransaction().replace(R.id.mainContent, fragment).commit();
 

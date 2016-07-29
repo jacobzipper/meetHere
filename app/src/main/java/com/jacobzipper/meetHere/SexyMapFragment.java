@@ -1,14 +1,21 @@
 package com.jacobzipper.meetHere;
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.telephony.SmsManager;
 import android.view.View;
+import android.widget.TextView;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -40,12 +47,9 @@ import java.util.Map;
 import retrofit2.Call;
 import retrofit2.Response;
 
-public class SexyMapFragment extends FragmentActivity implements GoogleMap.OnInfoWindowClickListener, OnMapReadyCallback {
+public class SexyMapFragment extends FragmentActivity implements GoogleMap.OnInfoWindowLongClickListener,GoogleMap.OnInfoWindowClickListener, OnMapReadyCallback {
+    Activity thisContext = this;
     OnMapReadyCallback fuckThis = this;
-    ArrayList<Boolean> isOpens = new ArrayList<Boolean>();
-    ArrayList<String> phones = new ArrayList<String>();
-    ArrayList<String> urls = new ArrayList<String>();
-    ArrayList<String> addresses = new ArrayList<String>();
     ArrayList<Business> businesses = new ArrayList<Business>();
     ArrayList<String> businessNames;
     ArrayList<String> userPhones = new ArrayList<String>();
@@ -64,7 +68,11 @@ public class SexyMapFragment extends FragmentActivity implements GoogleMap.OnInf
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.fragment_sexy_map);
+        MobileAds.initialize(getApplicationContext(), "ca-app-pub-4122970782896620/5395595791");
+        AdView mAdView = (AdView) findViewById(R.id.adMap);
+        AdRequest adRequest = new AdRequest.Builder().build();
 
+        mAdView.loadAd(adRequest);
         new Thread() {
             public void run() {
                 for (String name : MainActivity.checked) {
@@ -157,19 +165,39 @@ public class SexyMapFragment extends FragmentActivity implements GoogleMap.OnInf
         mMap.setOnInfoWindowClickListener(this);
 
         int i = 0;
-        for(LatLng curL : latlongs) {
+        for (LatLng curL : latlongs) {
             mMap.addMarker(new MarkerOptions().position(curL).title(MainActivity.checked.get(i)));
             i++;
         }
-
-        search(curTerm);
-        while(!searchDone);
-        searchDone = false;
-        mMap.addMarker(new MarkerOptions().position(new LatLng(MainActivity.midLat,MainActivity.midLong)).title("MIDPOINT").icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(),R.mipmap.ic_launcher))));
-        for(Business business : businesses) {
-            mMap.addMarker(new MarkerOptions().position(new LatLng(business.location().coordinate().latitude(),business.location().coordinate().longitude())).title(business.name()).snippet(business.snippetText()).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
+        mMap.addMarker(new MarkerOptions().position(new LatLng(MainActivity.midLat, MainActivity.midLong)).title("MIDPOINT").icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(MainActivity.midLat, MainActivity.midLong), 15));
+        if(!curTerm.equals("")) {
+            search(curTerm);
+            while (!searchDone) ;
+            searchDone = false;
+            for (Business business : businesses) {
+                mMap.addMarker(new MarkerOptions().position(new LatLng(business.location().coordinate().latitude(), business.location().coordinate().longitude())).title(business.name()).snippet(getAddressFromName(business.name())).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
+            }
         }
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(MainActivity.midLat,MainActivity.midLong),12));
+        mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+            @Override
+            public View getInfoWindow(Marker arg0) {
+                return null;
+            }
+            @Override
+            public View getInfoContents(Marker marker) {
+                View myContentView = getLayoutInflater().inflate(
+                        R.layout.info_item, null);
+                TextView tvTitle = ((TextView) myContentView
+                        .findViewById(R.id.bizNameText));
+                tvTitle.setText(marker.getTitle());
+                TextView tvSnippet = ((TextView) myContentView
+                        .findViewById(R.id.snippetText));
+                tvSnippet.setText(marker.getSnippet());
+                return myContentView;
+            }
+        });
+        mMap.setOnInfoWindowLongClickListener(this);
     }
 
     public void search(final String term) {
@@ -192,18 +220,8 @@ public class SexyMapFragment extends FragmentActivity implements GoogleMap.OnInf
                 for(Business business : myBusinesses) {
                     businesses.add(business);
                     businessNames.add(business.name());
-                    phones.add(business.displayPhone());
-                    isOpens.add(business.isClosed());
-                    urls.add(business.mobileUrl());
-                    ArrayList<String> addy = business.location().displayAddress();
-                    String addystr = "";
-                    for(String cur : addy) {
-                        addystr += cur+" ";
-                    }
-                    addystr = addystr.substring(0,addystr.length()-1);
-                    addresses.add(addystr);
                 }
-            searchDone=true;
+                searchDone=true;
             }
         }.start();
     }
@@ -221,14 +239,33 @@ public class SexyMapFragment extends FragmentActivity implements GoogleMap.OnInf
             for(String phoneNum : userPhones) {
                 if (ActivityCompat.checkSelfPermission(MainActivity.mainContext, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(MainActivity.mainContext, new String[]{Manifest.permission.SEND_SMS}, 1);
-
                 }
                 else {
                     SmsManager sms = SmsManager.getDefault();
-                    String message = "Hey, lets meet at " + marker.getTitle() + "!";
+                    String message = "Hey, lets meet at " + marker.getTitle() + "! It's located at "+getAddressFromName(marker.getTitle())+".";
                     sms.sendTextMessage(phoneNum, null, message, null, null);
                 }
             }
         }
     }
+    @Override
+    public void onInfoWindowLongClick(Marker marker) {
+        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q="+getAddressFromName(marker.getTitle()).replace(" ","+")));
+        startActivity(browserIntent);
+    }
+    public String getAddressFromName(String name) {
+        String ret = "";
+        for(Business business : businesses) {
+            if(business.name().equals(name)) {
+                ArrayList<String> addy = business.location().displayAddress();
+                for(String addpart : addy) {
+                    ret+=addpart +" ";
+                }
+                ret = ret.substring(0,ret.length()-1);
+                return ret;
+            }
+        }
+        return ret;
+    }
 }
+
