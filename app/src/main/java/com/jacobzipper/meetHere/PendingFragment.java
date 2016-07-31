@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 
@@ -60,12 +61,14 @@ public class PendingFragment extends Fragment {
                         MainActivity.mainContext.findViewById(R.id.denyButton).setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
+                                Toast.makeText(MainActivity.mainContext,"DENIED",Toast.LENGTH_LONG).show();
                                 subPending(curName);
                             }
                         });
                         MainActivity.mainContext.findViewById(R.id.confirmButton).setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
+                                Toast.makeText(MainActivity.mainContext,"Accepted!",Toast.LENGTH_LONG).show();
                                 addPending(curName);
                             }
                         });

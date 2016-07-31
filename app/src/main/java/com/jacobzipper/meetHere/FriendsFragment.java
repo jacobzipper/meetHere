@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 
@@ -134,6 +135,13 @@ public class FriendsFragment extends Fragment {
             public void onClick(View view) {
                 new Thread() {
                     public void run() {
+                        MainActivity.mainContext.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(MainActivity.mainContext,"Friend added!",Toast.LENGTH_LONG).show();
+                            }
+                        });
+
                         addFriend();
                     }
                 }.start();
@@ -144,6 +152,13 @@ public class FriendsFragment extends Fragment {
             public void onClick(View view) {
                 new Thread() {
                     public void run() {
+                        MainActivity.mainContext.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(MainActivity.mainContext,"Friend deleted.",Toast.LENGTH_LONG).show();
+                            }
+                        });
+
                         subFriend();
                     }
                 }.start();

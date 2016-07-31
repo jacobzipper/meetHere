@@ -8,16 +8,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/registerName"
-        android:layout_below="@+id/register"
+        android:layout_below="@+id/registerButton"
         android:layout_alignParentStart="true"
         android:layout_marginTop="10dp"
-        android:hint="username" />
+        android:hint="email" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="REGISTER"
-        android:id="@+id/register"
+        android:id="@+id/registerButton"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true" />
 
@@ -31,22 +31,4 @@
         android:hint="password"
         android:inputType="textPassword" />
 
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/registerRealName"
-        android:layout_below="@+id/registerPass"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="10dp"
-        android:hint="real name" />
-
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/registerPhone"
-        android:layout_below="@+id/registerRealName"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="10dp"
-        android:hint="phone number"
-        android:inputType="phone" />
 </RelativeLayout>

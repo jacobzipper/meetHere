@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 
@@ -153,6 +154,7 @@ public class MeetFragment extends Fragment {
             public void onClick(View view) {
                 checked.add(prefs.getString("name","Default"));
                 MainActivity.checked = checked;
+                Toast.makeText(MainActivity.mainContext,"Meeting...",Toast.LENGTH_LONG).show();
                 startActivity(new Intent(MainActivity.mainContext,SexyMapFragment.class));
             }
         });

@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.DrawerLayout;
 import android.view.View;
@@ -19,14 +20,12 @@ import android.widget.Toast;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 
 /**
@@ -40,178 +39,51 @@ public class MainActivity extends FragmentActivity {
     ListView mDrawerList;
     RelativeLayout mDrawerPane;
     private DrawerLayout mDrawerLayout;
-    boolean registerClicked = false;
-    boolean loginClicked = false;
-
+    private FirebaseAuth auth;
+    private FirebaseAuth.AuthStateListener authListener;
     ArrayList<NavItem> mNavItems = new ArrayList<NavItem>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        final SharedPreferences.Editor editor = prefs.edit();
-        mainContext = this;
         super.onCreate(savedInstanceState);
-        startService(new Intent(this,BackgroundService.class));
-        if (prefs.getString("name", "Default").equals("Default")) {
-            setContentView(R.layout.activity_register);
-            new Thread() {
-                public void run() {
-                    while(!registerClicked) {
-                        final String nameText = ((EditText) findViewById(R.id.registerName)).getText().toString();
-                        final String passText = ((EditText) findViewById(R.id.registerPass)).getText().toString();
-                        final String realNameText = ((EditText) findViewById(R.id.registerRealName)).getText().toString();
-                        final String phoneText = ((EditText) findViewById(R.id.registerPhone)).getText().toString();
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                ((EditText) findViewById(R.id.registerName)).setText(nameText.replace(" ",""));
-                                if(!nameText.equals("") && !passText.equals("") && !realNameText.equals("") && !phoneText.equals("")) {
-                                    findViewById(R.id.register).setClickable(true);
-                                    findViewById(R.id.register).setAlpha(1f);
-                                }
-                                else {
-                                    findViewById(R.id.register).setClickable(false);
-                                    findViewById(R.id.register).setAlpha(.2f);
-                                }
-                            }
-                        });
-                        try {
-                            this.sleep(50);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
+        mainContext = this;
+        auth = FirebaseAuth.getInstance();
+        authListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = auth.getCurrentUser();
+                if(user!=null) {
+                    mainUI();
                 }
-            }.start();
-            findViewById(R.id.register).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    final String nameText = ((EditText) findViewById(R.id.registerName)).getText().toString();
-                    final String passText = ((EditText) findViewById(R.id.registerPass)).getText().toString();
-                    final String realNameText = ((EditText) findViewById(R.id.registerRealName)).getText().toString();
-                    final String phoneText = ((EditText) findViewById(R.id.registerPhone)).getText().toString();
-
-                    new Thread() {
-                        public void run() {
-                            String resp;
-                            do {
-                                resp = tryRegistering(nameText,passText,realNameText,phoneText);
-                                if(resp.equals("username taken")) {
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            Toast.makeText(getApplicationContext(),"Username taken",Toast.LENGTH_LONG).show();
-                                        }
-                                    });
-                                }
-                                else {
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            Toast.makeText(getApplicationContext(),"Registered!",Toast.LENGTH_LONG).show();
-                                            editor.putString("name", nameText);
-                                            editor.putString("loggedIn","true");
-                                            editor.commit();
-                                        }
-                                    });
-                                }
-                            }while(resp.equals("username taken"));
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    registerClicked = true;
-                                    mainUI();
-                                }
-                            });
-
-
+                else {
+                    setContentView(R.layout.registration_login);
+                    findViewById(R.id.registerButtonShit).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            registerStuff();
                         }
-                    }.start();
-
-
+                    });
+                    findViewById(R.id.logInButtonShit).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            loginStuff();
+                        }
+                    });
                 }
-            });
+            }
+        };
+    }
+
+    protected void onStart() {
+        super.onStart();
+        auth.addAuthStateListener(authListener);
+    }
+
+    protected void onStop() {
+        super.onStop();
+        if(authListener!=null) {
+            auth.removeAuthStateListener(authListener);
         }
-        else if(prefs.getString("loggedIn","Default").equals("false")) {
-            setContentView(R.layout.activity_login);
-            new Thread() {
-                public void run() {
-                    while(!loginClicked) {
-                        final String nameText = ((EditText) findViewById(R.id.userNameEntry)).getText().toString();
-                        final String passText = ((EditText) findViewById(R.id.passwordEntry)).getText().toString();
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if(!nameText.equals("") && !passText.equals("")) {
-                                    findViewById(R.id.loginButton).setClickable(true);
-                                    findViewById(R.id.loginButton).setAlpha(1f);
-                                }
-                                else {
-                                    findViewById(R.id.loginButton).setClickable(false);
-                                    findViewById(R.id.loginButton).setAlpha(.2f);
-                                }
-                            }
-                        });
-                        try {
-                            this.sleep(50);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }.start();
-            findViewById(R.id.loginButton).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    final String username = ((EditText)findViewById(R.id.userNameEntry)).getText().toString();
-                    final String password = ((EditText)findViewById(R.id.passwordEntry)).getText().toString();
-                    new Thread() {
-                        public void run() {
-                            String resp;
-                            do {
-                                resp = tryLoggingIn(username,password);
-                                if(resp.equals("Username not found")) {
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            Toast.makeText(getApplicationContext(),"Username not found",Toast.LENGTH_LONG).show();
-                                        }
-                                    });
-                                }
-                                else if(resp.equals("Incorrect password")) {
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            Toast.makeText(getApplicationContext(),"Incorrect password",Toast.LENGTH_LONG).show();
-                                        }
-                                    });
-                                }
-                                else {
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            Toast.makeText(getApplicationContext(),"Logged in!",Toast.LENGTH_LONG).show();
-                                            editor.putString("loggedIn","true");
-                                            editor.commit();
-                                        }
-                                    });
-                                }
-                            }while(resp.equals("Username not found") || resp.equals("Incorrect password"));
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    loginClicked = true;
-                                    mainUI();
-                                }
-                            });
-                        }
-                    }.start();
-                }
-            });
-        }
-        else {
-           mainUI();
 
-        }
     }
     public void mainUI() {
         setContentView(R.layout.activity_main);
@@ -288,60 +160,54 @@ public class MainActivity extends FragmentActivity {
 
         }
         else if(mNavItems.get(position).mTitle.equals("Logout")) {
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-            final SharedPreferences.Editor editor = prefs.edit();
-            editor.putString("loggedIn","false");
-            editor.commit();
+            auth.signOut();
             startActivity(new Intent(this,MainActivity.class));
         }
         // Close the drawer
         mDrawerLayout.closeDrawer(mDrawerPane);
     }
-    public String tryRegistering(String nameText, String passText, String realNameText, String phoneText) {
-        StringBuffer response = new StringBuffer();
-        try {
-            HttpURLConnection connection = (HttpURLConnection) (new URL("http://jacobzipper.com/meetmethere/register.php")).openConnection();
-            connection.setDoOutput(true);
-            String content = "name=" + URLEncoder.encode(nameText) + "&password=" + URLEncoder.encode(passText) + "&realname=" + URLEncoder.encode(realNameText) + "&phone=" + URLEncoder.encode(phoneText);
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            connection.setFixedLengthStreamingMode(content.getBytes().length);
-            DataOutputStream output = new DataOutputStream(connection.getOutputStream());
-            output.writeBytes(content);
-            output.flush();
-            output.close();
-            InputStream is = connection.getInputStream();
-            BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-            String line;
-            while ((line = rd.readLine()) != null) {
-                response.append(line);
-            }
-            rd.close();
-        }catch (Exception e) {e.printStackTrace();}
-        return response.toString();
-    }
-    public String tryLoggingIn(String username, String password) {
-        StringBuffer response = new StringBuffer();
-        try {
-            HttpURLConnection connection = (HttpURLConnection) (new URL("http://jacobzipper.com/meetmethere/login.php")).openConnection();
-            connection.setDoOutput(true);
-            String content = "name=" + URLEncoder.encode(username) + "&password=" + URLEncoder.encode(password);
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            connection.setFixedLengthStreamingMode(content.getBytes().length);
-            DataOutputStream output = new DataOutputStream(connection.getOutputStream());
-            output.writeBytes(content);
-            output.flush();
-            output.close();
-            InputStream is = connection.getInputStream();
-            BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-            String line;
-            while ((line = rd.readLine()) != null) {
-                response.append(line);
-            }
-            rd.close();
-        }catch (Exception e) {e.printStackTrace();}
-        return response.toString();
-    }
 
+    public void loginStuff() {
+        final String nameText = ((EditText)findViewById(R.id.userNameEntry)).getText().toString();
+        final String passText = ((EditText)findViewById(R.id.passwordEntry)).getText().toString();
+        findViewById(R.id.loginButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                auth.signInWithEmailAndPassword(nameText,passText).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if(task.isSuccessful()) {
+                            mainUI();
+                            Toast.makeText(getApplicationContext(), "Logged in!", Toast.LENGTH_SHORT).show();
+                        }
+                        else {
+                            Toast.makeText(getApplicationContext(), "Not able to log in. Please try again.", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
+            }
+        });
+    }
+    public void registerStuff() {
+        setContentView(R.layout.activity_register);
+        findViewById(R.id.registerButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final String nameText = ((EditText) findViewById(R.id.registerName)).getText().toString();
+                final String passText = ((EditText) findViewById(R.id.registerPass)).getText().toString();
+                auth.createUserWithEmailAndPassword(nameText,passText).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if(task.isSuccessful()) {
+                            mainUI();
+                            Toast.makeText(getApplicationContext(), "Registered!", Toast.LENGTH_SHORT).show();
+                        }
+                        else {
+                            Toast.makeText(getApplicationContext(), "Registration unsuccessful, please try again", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
+            }
+        });
+    }
 }
