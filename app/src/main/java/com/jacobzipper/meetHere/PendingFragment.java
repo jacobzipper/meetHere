@@ -1,10 +1,8 @@
 package com.jacobzipper.meetHere;
 
 import android.app.Fragment;
-import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,21 +10,21 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import org.json.JSONArray;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.GenericTypeIndicator;
+import com.google.firebase.database.ValueEventListener;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 
 public class PendingFragment extends Fragment {
-    ArrayList<String> pending = new ArrayList<String>();
     String curName="";
     View lastView = null;
+    View fragView;
+    GenericTypeIndicator<ArrayList<String>> type = new GenericTypeIndicator<ArrayList<String>>() {};
+    final DatabaseReference dbReference = FirebaseDatabase.getInstance().getReference("users");
     public PendingFragment() {
         // Required empty public constructor
     }
@@ -36,153 +34,137 @@ public class PendingFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        new Thread() {
-            public void run() {
-                try {
-                    this.sleep(50);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+        fragView = inflater.inflate(R.layout.fragment_pending, container, false);
+        ((ListView)fragView.findViewById(R.id.pending)).setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                curName = "";
+                if(lastView!=null) {
+                    lastView.setBackgroundColor(Color.rgb(240,240,240));
                 }
-                ((ListView)MainActivity.mainContext.findViewById(R.id.pending)).setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                        if(lastView!=null) {
-                            lastView.setBackgroundColor(Color.rgb(240,240,240));
-                        }
-                        lastView = view;
-                        view.setBackgroundColor(Color.argb(100,0,200,0));
-                        curName = pending.get(i);
-                    }
-                });
-                updatePending();
+                if(view!=lastView) {
+                    view.setBackgroundColor(Color.argb(100, 0, 200, 0));
+                    curName = MainActivity.pending.get(i);
+                }
+                lastView = view;
+            }
+        });
+        dbReference.child(MainActivity.username).child("pending").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
                 MainActivity.mainContext.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        MainActivity.mainContext.findViewById(R.id.denyButton).setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                Toast.makeText(MainActivity.mainContext,"DENIED",Toast.LENGTH_LONG).show();
-                                subPending(curName);
-                            }
-                        });
-                        MainActivity.mainContext.findViewById(R.id.confirmButton).setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                Toast.makeText(MainActivity.mainContext,"Accepted!",Toast.LENGTH_LONG).show();
-                                addPending(curName);
-                            }
-                        });
+                        updatePending();
                     }
                 });
             }
-        }.start();
-        return inflater.inflate(R.layout.fragment_pending, container, false);
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+        fragView.findViewById(R.id.confirmButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                addPending(curName);
+            }
+        });
+        fragView.findViewById(R.id.denyButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                removePending(curName);
+            }
+        });
+        updatePending();
+        return fragView;
     }
     public void updatePending() {
-        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.mainContext);
-        new Thread() {
-            public void run() {
-                try {
-                    pending.clear();
-                    String nameString = prefs.getString("name", "Default");
-                    HttpURLConnection connection = (HttpURLConnection) (new URL("http://jacobzipper.com/meetmethere/pending.php")).openConnection();
-                    connection.setDoOutput(true);
-                    String content = "name=" + URLEncoder.encode(nameString);
-                    connection.setRequestMethod("POST");
-                    connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-                    connection.setFixedLengthStreamingMode(content.getBytes().length);
-                    DataOutputStream output = new DataOutputStream(connection.getOutputStream());
-                    output.writeBytes(content);
-                    output.flush();
-                    output.close();
-                    InputStream is = connection.getInputStream();
-                    BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-                    String line;
-                    StringBuffer response = new StringBuffer();
-                    while ((line = rd.readLine()) != null) {
-                        response.append(line);
-                    }
-                    rd.close();
-                    JSONArray arrFriends = new JSONArray(response.toString());
-                    for (int i = 0; i < arrFriends.length(); i++) {
-                        pending.add(arrFriends.getString(i));
-                    }
-                    final CustomAdapter adapter = new CustomAdapter(MainActivity.mainContext, R.layout.text_item, pending);
-                    MainActivity.mainContext.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            ((ListView) MainActivity.mainContext.findViewById(R.id.pending)).setAdapter(adapter);
-                        }
-                    });
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }.start();
+        final CustomAdapter adapter = new CustomAdapter(MainActivity.mainContext, R.layout.text_item, MainActivity.pending);
+        ((ListView) fragView.findViewById(R.id.pending)).setAdapter(adapter);
     }
     public void addPending(final String name) {
-        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.mainContext);
         new Thread() {
             public void run() {
-                try {
-
-                    HttpURLConnection connection = (HttpURLConnection)(new URL("http://jacobzipper.com/meetmethere/pending_to_friend.php")).openConnection();
-                    connection.setDoOutput(true);
-                    String content = "name="+URLEncoder.encode(prefs.getString("name","Default"))+"&friend="+URLEncoder.encode(name);
-                    connection.setRequestMethod("POST");
-                    connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-                    connection.setFixedLengthStreamingMode(content.getBytes().length);
-                    DataOutputStream output = new DataOutputStream(connection.getOutputStream());
-                    output.writeBytes(content);
-                    output.flush();
-                    output.close();
-                    updatePending();
-                    MainActivity.mainContext.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            final CustomAdapter adapter = new CustomAdapter(MainActivity.mainContext, R.layout.text_item, pending);
+                dbReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if(dataSnapshot.hasChild(name)) {
+                            if (dataSnapshot.child(MainActivity.username).hasChild("friends")) {
+                                ArrayList<String> curFriends = dataSnapshot.child(MainActivity.username).child("friends").getValue(type);
+                                curFriends.add(name);
+                                dbReference.child(MainActivity.username).child("friends").setValue(curFriends);
+                            }
+                            else {
+                                ArrayList<String> curFriends = new ArrayList<String>();
+                                curFriends.add(name);
+                                dbReference.child(MainActivity.username).child("friends").setValue(curFriends);
+                            }
+                            if (dataSnapshot.child(name).hasChild("friends")) {
+                                ArrayList<String> curFriends = dataSnapshot.child(name).child("friends").getValue(type);
+                                curFriends.add(MainActivity.username);
+                                dbReference.child(name).child("friends").setValue(curFriends);
+                            }
+                            else {
+                                ArrayList<String> curFriends = new ArrayList<String>();
+                                curFriends.add(MainActivity.username);
+                                dbReference.child(name).child("friends").setValue(curFriends);
+                            }
+                            ArrayList<String> curPending = dataSnapshot.child(MainActivity.username).child("pending").getValue(type);
+                            int index = in(curPending,name);
+                            if(index!=-1) curPending.remove(index);
+                            dbReference.child(MainActivity.username).child("pending").setValue(curPending);
+                        }
+                        else {
                             MainActivity.mainContext.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    ((ListView) MainActivity.mainContext.findViewById(R.id.pending)).setAdapter(adapter);
+                                    Toast.makeText(MainActivity.mainContext,"This user could not be found",Toast.LENGTH_SHORT).show();
                                 }
                             });
                         }
-                    });
-                }catch(Exception e) {e.printStackTrace();}
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+                dbReference.child(MainActivity.username).child("addingPending").setValue("1");
+                dbReference.child(MainActivity.username).child("addingPending").removeValue();
+            }
+        }.start();
+
+    }
+    public void removePending(final String name) {
+        new Thread() {
+            public void run() {
+                dbReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        ArrayList<String> curPending = dataSnapshot.child(MainActivity.username).child("pending").getValue(type);
+                        int index = in(curPending,name);
+                        if(index!=-1) curPending.remove(index);
+                        dbReference.child(MainActivity.username).child("pending").setValue(curPending);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+                dbReference.child(MainActivity.username).child("removingPending").setValue("1");
+                dbReference.child(MainActivity.username).child("removingPending").removeValue();
             }
         }.start();
     }
-    public void subPending(final String name) {
-        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.mainContext);
-        new Thread() {
-            public void run() {
-                try {
-                    HttpURLConnection connection = (HttpURLConnection)(new URL("http://jacobzipper.com/meetmethere/sub_pending.php")).openConnection();
-                    connection.setDoOutput(true);
-                    String content = "name="+URLEncoder.encode(prefs.getString("name","Default"))+"&friend="+URLEncoder.encode(name);
-                    connection.setRequestMethod("POST");
-                    connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-                    connection.setFixedLengthStreamingMode(content.getBytes().length);
-                    DataOutputStream output = new DataOutputStream(connection.getOutputStream());
-                    output.writeBytes(content);
-                    output.flush();
-                    output.close();
-                    updatePending();
-                    MainActivity.mainContext.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            final CustomAdapter adapter = new CustomAdapter(MainActivity.mainContext, R.layout.text_item, pending);
-                            MainActivity.mainContext.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    ((ListView) MainActivity.mainContext.findViewById(R.id.pending)).setAdapter(adapter);
-                                }
-                            });
-                        }
-                    });
-                }catch(Exception e) {e.printStackTrace();}
+    public int in(ArrayList<String> arr, String check) {
+        for(int i = 0; i < arr.size(); i++) {
+            if(arr.get(i).equals(check)) {
+                return i;
             }
-        }.start();
+        }
+        return -1;
     }
 }

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent" android:layout_height="wrap_content"
+    android:padding="15dp"
+    android:background="@drawable/rectangle_borders">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Add your friend by their info!"
+        android:id="@+id/textView6"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/popupName"
+        android:layout_below="@+id/textView6"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:hint="name" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/popupAddress"
+        android:layout_below="@+id/popupName"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:hint="address"
+        android:inputType="textPostalAddress" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/popupPhone"
+        android:layout_below="@+id/popupAddress"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:hint="phone"
+        android:inputType="phone" />
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="125dp"
+        android:layout_height="wrap_content"
+        android:text="Add to list"
+        android:id="@+id/popupAdder"
+        android:layout_below="@+id/popupPhone"
+        android:layout_alignEnd="@+id/popupPhone" />
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="125dp"
+        android:layout_height="wrap_content"
+        android:text="Cancel"
+        android:id="@+id/popupCancel"
+        android:layout_below="@+id/popupPhone"
+        android:layout_alignParentStart="true" />
+</RelativeLayout>

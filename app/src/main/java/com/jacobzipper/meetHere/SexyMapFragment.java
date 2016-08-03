@@ -1,7 +1,6 @@
 package com.jacobzipper.meetHere;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
@@ -12,6 +11,7 @@ import android.support.v4.app.FragmentActivity;
 import android.telephony.SmsManager;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -30,16 +30,7 @@ import com.yelp.clientlib.entities.Business;
 import com.yelp.clientlib.entities.SearchResponse;
 import com.yelp.clientlib.entities.options.CoordinateOptions;
 
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,17 +39,12 @@ import retrofit2.Call;
 import retrofit2.Response;
 
 public class SexyMapFragment extends FragmentActivity implements GoogleMap.OnInfoWindowLongClickListener,GoogleMap.OnInfoWindowClickListener, OnMapReadyCallback {
-    Activity thisContext = this;
     OnMapReadyCallback fuckThis = this;
     ArrayList<Business> businesses = new ArrayList<Business>();
-    ArrayList<String> businessNames;
-    ArrayList<String> userPhones = new ArrayList<String>();
-    boolean networkingDone = false;
-    ArrayList<LatLng> latlongs = new ArrayList<LatLng>();
+    ArrayList<String> businessNames = new ArrayList<String>();
     YelpAPIFactory apiFactory = new YelpAPIFactory("8tEL_-l8SMpai0PV0dUnpA", "ZO9RlcebiOqKcJiYrUdZfc85hj0", "FXn_gfDzucwbr_BEma3uFxvHxq3M94H2", "3bqVIJcP5jI3uOYeLwQAgKX27A8");
     YelpAPI yelpAPI = apiFactory.createAPI();
     String curTerm = "";
-    private GoogleMap mMap;
     boolean searchDone = false;
     public SexyMapFragment() {
         // Required empty public constructor
@@ -67,53 +53,16 @@ public class SexyMapFragment extends FragmentActivity implements GoogleMap.OnInf
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.fragment_sexy_map);
+        setContentView(R.layout.activity_sexy_map);
         MobileAds.initialize(getApplicationContext(), "ca-app-pub-4122970782896620/5395595791");
         AdView mAdView = (AdView) findViewById(R.id.adMap);
         AdRequest adRequest = new AdRequest.Builder().build();
-
         mAdView.loadAd(adRequest);
-        new Thread() {
-            public void run() {
-                for (String name : MainActivity.checked) {
-                    try {
-                        HttpURLConnection connection = (HttpURLConnection) (new URL("http://jacobzipper.com/meetmethere/get_info.php")).openConnection();
-                        connection.setDoOutput(true);
-                        String content = "name=" + URLEncoder.encode(name);
-                        connection.setRequestMethod("POST");
-                        connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-                        connection.setFixedLengthStreamingMode(content.getBytes().length);
-                        DataOutputStream output = new DataOutputStream(connection.getOutputStream());
-                        output.writeBytes(content);
-                        output.flush();
-                        output.close();
-                        InputStream is = connection.getInputStream();
-                        BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-                        String line;
-                        StringBuffer response = new StringBuffer();
-                        while ((line = rd.readLine()) != null) {
-                            response.append(line);
-                        }
-                        rd.close();
-                        JSONObject person = new JSONObject(response.toString());
-                        double latitude = Double.parseDouble(person.getString("curLat"));
-                        double longitude = Double.parseDouble(person.getString("curLong"));
-                        userPhones.add(person.getString("phone"));
-                        latlongs.add(new LatLng(latitude, longitude));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                networkingDone = true;
-            }
-        }.start();
-        while(!networkingDone);
         double leftX = Integer.MAX_VALUE;
         double rightX = Integer.MIN_VALUE;
         double topY = Integer.MIN_VALUE;
         double bottomY = Integer.MAX_VALUE;
-        for (LatLng ltlng : latlongs) {
+        for (LatLng ltlng : MainActivity.latlongs) {
             if (ltlng.latitude > topY) {
                 topY = ltlng.latitude;
             }
@@ -132,6 +81,18 @@ public class SexyMapFragment extends FragmentActivity implements GoogleMap.OnInf
         // Inflate the layout for this fragment
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        findViewById(R.id.backMapButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                MainActivity.friends.clear();
+                MainActivity.userPhones.clear();
+                MainActivity.checked.clear();
+                MainActivity.latlongs.clear();
+                MainActivity.newUsers.clear();
+                MainActivity.pending.clear();
+                startActivity(new Intent(getApplicationContext(),MainActivity.class));
+            }
+        });
         findViewById(R.id.foodButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -161,43 +122,50 @@ public class SexyMapFragment extends FragmentActivity implements GoogleMap.OnInf
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-        mMap.setOnInfoWindowClickListener(this);
-
-        int i = 0;
-        for (LatLng curL : latlongs) {
-            mMap.addMarker(new MarkerOptions().position(curL).title(MainActivity.checked.get(i)));
-            i++;
+        googleMap.clear();
+        googleMap.setOnInfoWindowClickListener(this);
+        for(String name : MainActivity.checked) {
+            int index = in(MainActivity.friends,name);
+            googleMap.addMarker(new MarkerOptions().position(MainActivity.latlongs.get(index)).title(name).snippet(MainActivity.userPhones.get(index)));
         }
-        mMap.addMarker(new MarkerOptions().position(new LatLng(MainActivity.midLat, MainActivity.midLong)).title("MIDPOINT").icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(MainActivity.midLat, MainActivity.midLong), 15));
+        googleMap.addMarker(new MarkerOptions().position(new LatLng(MainActivity.midLat, MainActivity.midLong)).title("MIDPOINT").icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))));
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(MainActivity.midLat, MainActivity.midLong), 13));
         if(!curTerm.equals("")) {
+            businesses.clear();
             search(curTerm);
             while (!searchDone) ;
             searchDone = false;
             for (Business business : businesses) {
-                mMap.addMarker(new MarkerOptions().position(new LatLng(business.location().coordinate().latitude(), business.location().coordinate().longitude())).title(business.name()).snippet(getAddressFromName(business.name())).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
+                googleMap.addMarker(new MarkerOptions().position(new LatLng(business.location().coordinate().latitude(), business.location().coordinate().longitude())).title(business.name()).snippet(getAddressFromName(business.name())).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
             }
         }
-        mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+        googleMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
             @Override
             public View getInfoWindow(Marker arg0) {
                 return null;
             }
             @Override
             public View getInfoContents(Marker marker) {
-                View myContentView = getLayoutInflater().inflate(
+                View myContentView = null;
+                if(in(businessNames,marker.getTitle())!=-1) {
+                    myContentView = getLayoutInflater().inflate(
                         R.layout.info_item, null);
-                TextView tvTitle = ((TextView) myContentView
+                    TextView tvTitle = ((TextView) myContentView
                         .findViewById(R.id.bizNameText));
-                tvTitle.setText(marker.getTitle());
-                TextView tvSnippet = ((TextView) myContentView
+                    TextView tvSnippet = ((TextView) myContentView
                         .findViewById(R.id.snippetText));
-                tvSnippet.setText(marker.getSnippet());
+                    tvTitle.setText(marker.getTitle());
+                    tvSnippet.setText(marker.getSnippet());
+                }
+                else  {
+                    myContentView = getLayoutInflater().inflate(R.layout.classic_item,null);
+                    ((TextView)myContentView.findViewById(R.id.markerTitleWin)).setText(marker.getTitle());
+                    ((TextView)myContentView.findViewById(R.id.markerSnippetWin)).setText(marker.getSnippet());
+                }
                 return myContentView;
             }
         });
-        mMap.setOnInfoWindowLongClickListener(this);
+        googleMap.setOnInfoWindowLongClickListener(this);
     }
 
     public void search(final String term) {
@@ -214,6 +182,16 @@ public class SexyMapFragment extends FragmentActivity implements GoogleMap.OnInf
                     response = call.execute();
                 } catch (IOException e) {
                     e.printStackTrace();
+                }
+                if(response==null) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getApplicationContext(),"Nothing within 25 miles! Is your midpoint in the middle of the ocean?",Toast.LENGTH_LONG).show();
+                        }
+                    });
+                    searchDone = true;
+                    return;
                 }
                 ArrayList<Business> myBusinesses = response.body().businesses();
                 businessNames = new ArrayList<String>();
@@ -236,13 +214,13 @@ public class SexyMapFragment extends FragmentActivity implements GoogleMap.OnInf
     @Override
     public void onInfoWindowClick(Marker marker) {
         if(in(MainActivity.checked,marker.getTitle())==-1 && !marker.getTitle().equals("MIDPOINT")) {
-            for(String phoneNum : userPhones) {
+            for(String phoneNum : MainActivity.userPhones) {
                 if (ActivityCompat.checkSelfPermission(MainActivity.mainContext, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(MainActivity.mainContext, new String[]{Manifest.permission.SEND_SMS}, 1);
                 }
                 else {
                     SmsManager sms = SmsManager.getDefault();
-                    String message = "Hey, lets meet at " + marker.getTitle() + "! It's located at "+getAddressFromName(marker.getTitle())+".";
+                    String message = "Hey, lets meet at " + marker.getTitle() + "! It's located at "+getAddressFromName(marker.getTitle())+".\n\nSent from meetHere.";
                     sms.sendTextMessage(phoneNum, null, message, null, null);
                 }
             }

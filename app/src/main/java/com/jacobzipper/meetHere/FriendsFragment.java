@@ -1,9 +1,7 @@
 package com.jacobzipper.meetHere;
 
 import android.app.Fragment;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,20 +10,19 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import org.json.JSONArray;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.GenericTypeIndicator;
+import com.google.firebase.database.ValueEventListener;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 
 public class FriendsFragment extends Fragment {
-    ArrayList<String> friends;
-
+    final DatabaseReference dbReference = FirebaseDatabase.getInstance().getReference("users");
+    View fragView;
+    GenericTypeIndicator<ArrayList<String>> type = new GenericTypeIndicator<ArrayList<String>>() {};
     public FriendsFragment() {
         // Required empty public constructor
     }
@@ -34,140 +31,166 @@ public class FriendsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        new Thread() {
-            public void run() {
-                updateFriends();
-                doListeners();
+        fragView = inflater.inflate(R.layout.fragment_friends, container, false);
+        dbReference.child(MainActivity.username).child("friends").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                MainActivity.mainContext.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateFriends();
+                    }
+                });
             }
-        }.start();
-        return inflater.inflate(R.layout.fragment_friends, container, false);
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+        updateFriends();
+        doListeners();
+        return fragView;
     }
-
-    public void updateFriends() {
-        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.mainContext);
-
-        try {
-            friends = new ArrayList<String>();
-            String nameString = prefs.getString("name","Default");
-            HttpURLConnection connection = (HttpURLConnection)(new URL("http://jacobzipper.com/meetmethere/friends.php")).openConnection();
-            connection.setDoOutput(true);
-            String content = "name="+ URLEncoder.encode(nameString);
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            connection.setFixedLengthStreamingMode(content.getBytes().length);
-            DataOutputStream output = new DataOutputStream(connection.getOutputStream());
-            output.writeBytes(content);
-            output.flush();
-            output.close();
-            InputStream is = connection.getInputStream();
-            BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-            String line;
-            StringBuffer response = new StringBuffer();
-            while((line = rd.readLine()) != null) {
-                response.append(line);
+    public int in(ArrayList<String> arr, String check) {
+        for(int i = 0; i < arr.size(); i++) {
+            if(arr.get(i).equals(check)) {
+                return i;
             }
-            rd.close();
-            JSONArray arrFriends = new JSONArray(response.toString());
-            for(int i = 0; i < arrFriends.length(); i++) {
-                friends.add(arrFriends.getString(i));
-            }
-            final CustomAdapter adapter = new CustomAdapter(MainActivity.mainContext,R.layout.text_item,friends);
-            MainActivity.mainContext.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    ((ListView)MainActivity.mainContext.findViewById(R.id.friendsList)).setAdapter(adapter);
-                }
-            });
-        }catch (Exception e){
-            e.printStackTrace();
         }
+        return -1;
+    }
+    public void updateFriends() {
+        final CustomAdapter adapter = new CustomAdapter(MainActivity.mainContext, R.layout.text_item, MainActivity.friends);
+        ((ListView) fragView.findViewById(R.id.friendsList)).setAdapter(adapter);
     }
     public void addFriend() {
-        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.mainContext);
-        try {
-            String addstr = ((EditText) MainActivity.mainContext.findViewById(R.id.friendField)).getText().toString();
-            MainActivity.mainContext.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    ((EditText) MainActivity.mainContext.findViewById(R.id.friendField)).setText("");
+        new Thread() {
+            public void run() {
+                final String addstr = ((EditText) fragView.findViewById(R.id.friendField)).getText().toString();
+                MainActivity.mainContext.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ((EditText) fragView.findViewById(R.id.friendField)).setText("");
+                    }
+                });
+                if(in(MainActivity.friends,addstr)==-1 && !addstr.equals(MainActivity.username) && !addstr.equals("")) {
+                    dbReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            if(dataSnapshot.hasChild(addstr)) {
+                                if(dataSnapshot.child(addstr).hasChild("pending")) {
+                                    ArrayList<String> theirPending = dataSnapshot.child(addstr).child("pending").getValue(type);
+                                    if(in(theirPending,MainActivity.username)==-1) {
+                                        theirPending.add(MainActivity.username);
+                                        dbReference.child(addstr).child("pending").setValue(theirPending);
+                                        MainActivity.mainContext.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                Toast.makeText(MainActivity.mainContext, "Friend added!", Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+                                    }
+                                    else {
+                                        MainActivity.mainContext.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                Toast.makeText(MainActivity.mainContext,"You are still in this user's pending requests",Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+                                    }
+                                }
+                                else {
+                                    ArrayList<String> theirPending = new ArrayList<String>();
+                                    theirPending.add(MainActivity.username);
+                                    dbReference.child(addstr).child("pending").setValue(theirPending);
+                                }
+                            }
+                            else {
+                                MainActivity.mainContext.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(MainActivity.mainContext,"Could not find username",Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
                 }
-            });
-            HttpURLConnection connection = (HttpURLConnection)(new URL("http://jacobzipper.com/meetmethere/add_friends.php")).openConnection();
-            connection.setDoOutput(true);
-            String content = "name="+URLEncoder.encode(prefs.getString("name","Default"))+"&friend="+URLEncoder.encode(addstr);
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            connection.setFixedLengthStreamingMode(content.getBytes().length);
-            DataOutputStream output = new DataOutputStream(connection.getOutputStream());
-            output.writeBytes(content);
-            output.flush();
-            output.close();
-            updateFriends();
-        }catch(Exception e) {e.printStackTrace();}
+                else {
+                    MainActivity.mainContext.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(!addstr.equals("")) {
+                                Toast.makeText(MainActivity.mainContext, "You are already friends", Toast.LENGTH_SHORT).show();
+                            }
+                            else {
+                                Toast.makeText(MainActivity.mainContext, "Please type a username to add", Toast.LENGTH_LONG).show();
+                            }
+                        }
+                    });
+                }
+                dbReference.child(MainActivity.username).child("addingFriend").setValue("1");
+                dbReference.child(MainActivity.username).child("addingFriend").removeValue();
+            }
+        }.start();
+
     }
     public void subFriend() {
-        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.mainContext);
-        try {
-            String substr = ((EditText) MainActivity.mainContext.findViewById(R.id.friendField)).getText().toString();
-            MainActivity.mainContext.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    ((EditText) MainActivity.mainContext.findViewById(R.id.friendField)).setText("");
-                }
-            });
-            HttpURLConnection connection = (HttpURLConnection)(new URL("http://jacobzipper.com/meetmethere/sub_friends.php")).openConnection();
-            connection.setDoOutput(true);
-            String content = "name="+URLEncoder.encode(prefs.getString("name","Default"))+"&friend="+URLEncoder.encode(substr);
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            connection.setFixedLengthStreamingMode(content.getBytes().length);
-            DataOutputStream output = new DataOutputStream(connection.getOutputStream());
-            output.writeBytes(content);
-            output.flush();
-            output.close();
-            updateFriends();
-        }catch(Exception e) {e.printStackTrace();}
+        new Thread() {
+            public void run() {
+                final String substr = ((EditText) fragView.findViewById(R.id.friendField)).getText().toString();
+                MainActivity.mainContext.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ((EditText) fragView.findViewById(R.id.friendField)).setText("");
+                    }
+                });
+                dbReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        int index = in(MainActivity.friends,substr);
+                        if(index!=-1) {
+                            MainActivity.friends.remove(index);
+                            dbReference.child(MainActivity.username).child("friends").setValue(MainActivity.friends);
+                            ArrayList<String> theirFriends = dataSnapshot.child(substr).child("friends").getValue(type);
+                            theirFriends.remove(MainActivity.username);
+                            dbReference.child(substr).child("friends").setValue(theirFriends);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+                dbReference.child(MainActivity.username).child("removingFriend").setValue("1");
+                dbReference.child(MainActivity.username).child("removingFriend").removeValue();
+            }
+        }.start();
+
     }
     public void doListeners() {
-        MainActivity.mainContext.findViewById(R.id.addFriends).setOnClickListener(new View.OnClickListener() {
+        fragView.findViewById(R.id.addFriends).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new Thread() {
-                    public void run() {
-                        MainActivity.mainContext.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(MainActivity.mainContext,"Friend added!",Toast.LENGTH_LONG).show();
-                            }
-                        });
-
-                        addFriend();
-                    }
-                }.start();
+                addFriend();
             }
         });
-        MainActivity.mainContext.findViewById(R.id.subFriends).setOnClickListener(new View.OnClickListener() {
+        fragView.findViewById(R.id.subFriends).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new Thread() {
-                    public void run() {
-                        MainActivity.mainContext.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(MainActivity.mainContext,"Friend deleted.",Toast.LENGTH_LONG).show();
-                            }
-                        });
-
-                        subFriend();
-                    }
-                }.start();
+                subFriend();
             }
         });
-        ((ListView)MainActivity.mainContext.findViewById(R.id.friendsList)).setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        ((ListView)fragView.findViewById(R.id.friendsList)).setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                ((EditText)MainActivity.mainContext.findViewById(R.id.friendField)).setText(friends.get(i));
+                ((EditText)fragView.findViewById(R.id.friendField)).setText(MainActivity.friends.get(i));
             }
         });
     }

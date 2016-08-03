@@ -11,7 +11,8 @@
         android:layout_below="@+id/registerButton"
         android:layout_alignParentStart="true"
         android:layout_marginTop="10dp"
-        android:hint="email" />
+        android:hint="email"
+        android:inputType="textEmailAddress" />
 
     <Button
         android:layout_width="wrap_content"
@@ -30,5 +31,33 @@
         android:layout_marginTop="10dp"
         android:hint="password"
         android:inputType="textPassword" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/registerPhone"
+        android:layout_below="@+id/registerPass"
+        android:layout_centerHorizontal="true"
+        android:hint="phone"
+        android:inputType="phone"
+        android:layout_marginTop="10dp" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/registerRealName"
+        android:layout_below="@+id/registerPhone"
+        android:layout_centerHorizontal="true"
+        android:hint="name"
+        android:layout_marginTop="10dp" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/registerUsername"
+        android:layout_below="@+id/registerRealName"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:hint="username" />
 
 </RelativeLayout>
