@@ -25,27 +25,6 @@
             android:textSize="25dp"
             android:src="@mipmap/hamburger"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="Welcome to meetHere"
-            android:id="@+id/welcomeText"
-            android:textAlignment="center"
-            android:textSize="40dp"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentStart="true"
-            android:layout_marginTop="15dp" />
-        <TextView
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Click the menu in the top left to get started!"
-            android:id="@+id/textView3"
-            android:layout_below="@+id/welcomeText"
-            android:layout_centerHorizontal="true"
-            android:textAlignment="center" />
-
         <com.google.android.gms.ads.AdView
             android:id="@+id/adView"
             android:layout_width="wrap_content"
@@ -55,14 +34,6 @@
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true">
         </com.google.android.gms.ads.AdView>
-
-        <ImageView
-            android:layout_width="200dp"
-            android:layout_height="200dp"
-            android:id="@+id/imageView"
-            android:layout_centerVertical="true"
-            android:layout_centerHorizontal="true"
-            android:src="@mipmap/ic_launcher" />
 
     </RelativeLayout>
 
@@ -79,23 +50,16 @@
             android:id="@+id/profileBox"
             android:layout_width="match_parent"
             android:layout_height="100dp"
-            android:background="#AA6AAA"
+            android:background="#FF5A5F"
             android:padding="8dp" >
 
-            <ImageView
-                android:id="@+id/avatar"
-                android:layout_width="75dp"
-                android:layout_height="75dp"
-                android:src="@mipmap/ic_launcher"
-                android:layout_marginTop="15dp"
-                android:layout_marginLeft="-15dp"/>
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="42dp"
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="15dp"
-                android:layout_toRightOf="@+id/avatar"
+                android:layout_centerHorizontal="true"
                 android:orientation="vertical" >
 
                 <TextView

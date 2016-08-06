@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:padding="15dp"
+    android:background="@drawable/rectangle_borders">
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/popupAddFriend"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:hint="username"
+        android:layout_marginBottom="40dp"
+        android:layout_marginTop="25dp" />
+
+    <Button
+        android:layout_width="125dp"
+        android:layout_height="wrap_content"
+        android:text="Cancel"
+        android:id="@+id/popupCancelFriend"
+        android:layout_below="@+id/popupAddFriend"
+        android:layout_alignParentStart="true" />
+
+    <Button
+        android:layout_width="125dp"
+        android:layout_height="wrap_content"
+        android:text="Add friend"
+        android:id="@+id/popupAddFriendButton"
+        android:layout_below="@+id/popupAddFriend"
+        android:layout_alignEnd="@+id/popupAddFriend" />
+</RelativeLayout>

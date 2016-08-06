@@ -10,8 +10,8 @@ android {
         applicationId "com.jacobzipper.meetHere"
         minSdkVersion 18
         targetSdkVersion 24
-        versionCode 3
-        versionName "1.1.1"
+        versionCode 5
+        versionName "1.2.1"
         multiDexEnabled true
     }
     buildTypes {

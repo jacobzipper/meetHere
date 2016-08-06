@@ -1,13 +1,17 @@
 package com.jacobzipper.meetHere;
 
 import android.app.Fragment;
+import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.PopupWindow;
 import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
@@ -22,6 +26,9 @@ import java.util.ArrayList;
 public class FriendsFragment extends Fragment {
     final DatabaseReference dbReference = FirebaseDatabase.getInstance().getReference("users");
     View fragView;
+    String curName="";
+    View lastView = null;
+    boolean dismissButton = false;
     GenericTypeIndicator<ArrayList<String>> type = new GenericTypeIndicator<ArrayList<String>>() {};
     public FriendsFragment() {
         // Required empty public constructor
@@ -66,13 +73,7 @@ public class FriendsFragment extends Fragment {
     public void addFriend() {
         new Thread() {
             public void run() {
-                final String addstr = ((EditText) fragView.findViewById(R.id.friendField)).getText().toString();
-                MainActivity.mainContext.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        ((EditText) fragView.findViewById(R.id.friendField)).setText("");
-                    }
-                });
+                final String addstr = curName;
                 if(in(MainActivity.friends,addstr)==-1 && !addstr.equals(MainActivity.username) && !addstr.equals("")) {
                     dbReference.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
@@ -143,13 +144,7 @@ public class FriendsFragment extends Fragment {
     public void subFriend() {
         new Thread() {
             public void run() {
-                final String substr = ((EditText) fragView.findViewById(R.id.friendField)).getText().toString();
-                MainActivity.mainContext.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        ((EditText) fragView.findViewById(R.id.friendField)).setText("");
-                    }
-                });
+                final String substr = curName;
                 dbReference.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -190,7 +185,72 @@ public class FriendsFragment extends Fragment {
         ((ListView)fragView.findViewById(R.id.friendsList)).setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                ((EditText)fragView.findViewById(R.id.friendField)).setText(MainActivity.friends.get(i));
+                curName = "";
+                if(lastView!=null) {
+                    lastView.setBackgroundColor(Color.rgb(240,240,240));
+                }
+                if(view!=lastView) {
+                    view.setBackgroundColor(Color.argb(100, 0, 200, 0));
+                    curName = MainActivity.friends.get(i);
+                }
+                lastView = view;
+            }
+        });
+        fragView.findViewById(R.id.addFriends).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                fragView.findViewById(R.id.friendsLayout).setBackgroundColor(Color.rgb(60, 60, 60));
+                MainActivity.mainContext.findViewById(R.id.menu).setAlpha(.1f);
+                MainActivity.mainContext.findViewById(R.id.menu).setClickable(false);
+                fragView.findViewById(R.id.addFriends).setAlpha(.1f);
+                fragView.findViewById(R.id.addFriends).setClickable(false);
+                fragView.findViewById(R.id.subFriends).setAlpha(.1f);
+                fragView.findViewById(R.id.subFriends).setClickable(false);
+                LayoutInflater layoutInflater = (LayoutInflater) getActivity().getBaseContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                final View tempView = layoutInflater.inflate(R.layout.add_friends_popup, null);
+                final PopupWindow window = new PopupWindow(tempView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+                window.setFocusable(true);
+                window.setOnDismissListener(new PopupWindow.OnDismissListener() {
+                    @Override
+                    public void onDismiss() {
+                        if (!dismissButton) {
+                            window.setFocusable(true);
+                            window.showAtLocation(tempView, Gravity.CENTER, 0, 0);
+                        }
+                        dismissButton = false;
+                    }
+                });
+                window.showAtLocation(tempView, Gravity.CENTER, 0, 0);
+                tempView.findViewById(R.id.popupCancelFriend).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        fragView.findViewById(R.id.friendsLayout).setBackgroundColor(Color.rgb(255, 255, 255));
+                        MainActivity.mainContext.findViewById(R.id.menu).setAlpha(1f);
+                        MainActivity.mainContext.findViewById(R.id.menu).setClickable(true);
+                        fragView.findViewById(R.id.addFriends).setAlpha(1f);
+                        fragView.findViewById(R.id.addFriends).setClickable(true);
+                        fragView.findViewById(R.id.subFriends).setAlpha(1f);
+                        fragView.findViewById(R.id.subFriends).setClickable(true);
+                        dismissButton = true;
+                        window.dismiss();
+                    }
+                });
+                tempView.findViewById(R.id.popupAddFriendButton).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        curName = ((EditText)tempView.findViewById(R.id.popupAddFriend)).getText().toString();
+                        addFriend();
+                        fragView.findViewById(R.id.friendsLayout).setBackgroundColor(Color.rgb(255, 255, 255));
+                        MainActivity.mainContext.findViewById(R.id.menu).setAlpha(1f);
+                        MainActivity.mainContext.findViewById(R.id.menu).setClickable(true);
+                        fragView.findViewById(R.id.addFriends).setAlpha(1f);
+                        fragView.findViewById(R.id.addFriends).setClickable(true);
+                        fragView.findViewById(R.id.subFriends).setAlpha(1f);
+                        fragView.findViewById(R.id.subFriends).setClickable(true);
+                        dismissButton = true;
+                        window.dismiss();
+                    }
+                });
             }
         });
     }

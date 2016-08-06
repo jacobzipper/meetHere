@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:padding="15dp"
+    android:background="@drawable/rectangle_borders">
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/popupSearchTerm"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:hint="search term"
+        android:layout_marginBottom="40dp"
+        android:layout_marginTop="25dp" />
+
+    <Button
+        android:layout_width="125dp"
+        android:layout_height="wrap_content"
+        android:text="Cancel"
+        android:id="@+id/popupCancelSearch"
+        android:layout_below="@+id/popupSearchTerm"
+        android:layout_alignParentStart="true" />
+
+    <Button
+        android:layout_width="125dp"
+        android:layout_height="wrap_content"
+        android:text="Search"
+        android:id="@+id/popupDoSearch"
+        android:layout_below="@+id/popupSearchTerm"
+        android:layout_alignEnd="@+id/popupSearchTerm" />
+</RelativeLayout>

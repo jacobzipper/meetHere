@@ -98,7 +98,7 @@ public class MeetFragment extends Fragment {
                 tempView.findViewById(R.id.popupCancel).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        fragView.findViewById(R.id.meetLayout).setBackgroundColor(Color.rgb(240,240,240));
+                        fragView.findViewById(R.id.meetLayout).setBackgroundColor(Color.rgb(255,255,255));
                         MainActivity.mainContext.findViewById(R.id.menu).setAlpha(1f);
                         MainActivity.mainContext.findViewById(R.id.menu).setClickable(true);
                         fragView.findViewById(R.id.meetHereButton).setAlpha(1f);

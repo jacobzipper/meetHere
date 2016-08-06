@@ -1,57 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="15dp">
-
-    <EditText
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:id="@+id/friendField"
-        android:layout_alignParentLeft="true"
-        android:layout_marginLeft="30dp"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="0dp"
-        android:hint="Names here"
-        android:paddingTop="15dp"
-        android:paddingBottom="15dp" />
+    android:id="@+id/friendsLayout"
+    android:layout_height="match_parent">
 
     <Button
         style="?android:attr/buttonStyleSmall"
-        android:layout_width="wrap_content"
+        android:layout_width="125dp"
         android:layout_height="wrap_content"
-        android:text="+"
+        android:text="ADD"
         android:id="@+id/addFriends"
-        android:layout_alignParentTop="true"
-        android:layout_toStartOf="@+id/subFriends"
-        android:textSize="25dp" />
+        android:textSize="18dp"
+        android:layout_alignTop="@+id/subFriends"
+        android:layout_toStartOf="@+id/subFriends" />
 
     <Button
         style="?android:attr/buttonStyleSmall"
-        android:layout_width="wrap_content"
+        android:layout_width="125dp"
         android:layout_height="wrap_content"
-        android:text="-"
+        android:text="Remove"
         android:id="@+id/subFriends"
+        android:textSize="18dp"
         android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:textSize="25dp" />
+        android:layout_alignParentEnd="true" />
 
     <ListView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/friendsList"
-        android:layout_below="@+id/hintFriends"
-        android:layout_centerHorizontal="true"
         android:padding="15dp"
-        android:layout_marginBottom="50dp" />
+        android:layout_below="@+id/addFriends"
+        android:layout_alignParentStart="true" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Enter your friend&apos;s username above and click + to add them. Click the friend&apos;s name below and then click the - button to remove them."
-        android:id="@+id/hintFriends"
-        android:layout_below="@+id/friendField"
-        android:layout_centerHorizontal="true"
-        android:textAlignment="center" />
 </RelativeLayout>

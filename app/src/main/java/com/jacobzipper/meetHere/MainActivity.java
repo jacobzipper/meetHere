@@ -2,8 +2,13 @@ package com.jacobzipper.meetHere;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.location.Address;
+import android.location.Geocoder;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -30,8 +35,12 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by zipper on 7/22/16.
@@ -46,7 +55,11 @@ public class MainActivity extends FragmentActivity {
     public static ArrayList<LatLng> latlongs = new ArrayList<LatLng>();
     public static ArrayList<String> userPhones = new ArrayList<String>();
     public static ArrayList<String> newUsers = new ArrayList<String>();
+    public static ArrayList<LatLng> newLatLongs = new ArrayList<LatLng>();
     public static FragmentActivity mainContext;
+    boolean doneGetting = false;
+    boolean hasNetworking;
+    boolean doneCheckingNetwork = false;
     GenericTypeIndicator<ArrayList<String>> type = new GenericTypeIndicator<ArrayList<String>>() {};
     ListView mDrawerList;
     RelativeLayout mDrawerPane;
@@ -58,7 +71,6 @@ public class MainActivity extends FragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        startService(new Intent(getApplicationContext(),BackgroundService.class));
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
         editor = prefs.edit();
         username = prefs.getString("meetHere-username","Default");
@@ -98,7 +110,13 @@ public class MainActivity extends FragmentActivity {
             findViewById(R.id.registerButtonShit).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    registerStuff();
+                    if(!hasInternetAccess()) {
+                        Toast.makeText(getApplicationContext(),"Please register when you have an internet connection.",Toast.LENGTH_LONG).show();
+                        finish();
+                    }
+                    else {
+                        registerStuff();
+                    }
                 }
             });
             findViewById(R.id.logInButtonShit).setOnClickListener(new View.OnClickListener() {
@@ -111,11 +129,38 @@ public class MainActivity extends FragmentActivity {
     }
     public void mainUI() {
         setContentView(R.layout.activity_main);
+        if(!SexyMapFragment.backButton) {
+            Fragment fragment = new HomeFragment();
+            FragmentManager fragmentManager = getFragmentManager();
+            fragmentManager.beginTransaction().replace(R.id.mainContent, fragment).commit();
+        }
+        else {
+            SexyMapFragment.backButton = false;
+            new Thread() {
+                public void run() {
+                    while(!doneGetting) {
+                        try {
+                            this.sleep(50);
+                        }catch (Exception e) {e.printStackTrace();}
+                    }
+                    final Fragment fragment = new MeetFragment();
+                    final FragmentManager fragmentManager = getFragmentManager();
+                    friends.remove(MainActivity.username);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            fragmentManager.beginTransaction().replace(R.id.mainContent, fragment).commit();
+                        }
+                    });
+                }
+            }.start();
+        }
         ((TextView)findViewById(R.id.userName)).setText(prefs.getString("meetHere-realName","Default"));
         mNavItems.add(new NavItem("Home", "", R.mipmap.home));
         mNavItems.add(new NavItem("meetHere", "Find a place to meet with your friends!", R.mipmap.ic_launcher));
         mNavItems.add(new NavItem("Friends", "Manage your friends!", R.mipmap.friend));
         mNavItems.add(new NavItem("Pending", "Accept or deny new friends!", R.mipmap.pending));
+        mNavItems.add(new NavItem("Settings","Toggle settings for meetHere.", R.mipmap.settings));
         mNavItems.add(new NavItem("Help","Email us with anything you'd like to tell us.",R.mipmap.help));
         mNavItems.add(new NavItem("Logout","",R.mipmap.logout));
 
@@ -149,9 +194,6 @@ public class MainActivity extends FragmentActivity {
     }
 
     private void selectItemFromDrawer(int position) {
-        findViewById(R.id.welcomeText).setVisibility(View.GONE);
-        findViewById(R.id.textView3).setVisibility(View.GONE);
-        findViewById(R.id.imageView).setVisibility(View.GONE);
         if(mNavItems.get(position).mTitle.equals("Home")) {
             Fragment fragment = new HomeFragment();
             FragmentManager fragmentManager = getFragmentManager();
@@ -181,10 +223,22 @@ public class MainActivity extends FragmentActivity {
             fragmentManager.beginTransaction().replace(R.id.mainContent, fragment).commit();
 
         }
+        else if(mNavItems.get(position).mTitle.equals("Settings")) {
+            final Fragment fragment = new SettingsFragment();
+            FragmentManager fragmentManager = getFragmentManager();
+            fragmentManager.beginTransaction().replace(R.id.mainContent, fragment).commit();
+
+        }
         else if(mNavItems.get(position).mTitle.equals("Logout")) {
             editor.putString("meetHere-username","Default");
             editor.putString("meetHere-realName","Default");
             editor.commit();
+            checked.clear();
+            friends.clear();
+            newUsers.clear();
+            pending.clear();
+            latlongs.clear();
+            userPhones.clear();
             startActivity(new Intent(this,MainActivity.class));
         }
         // Close the drawer
@@ -272,55 +326,81 @@ public class MainActivity extends FragmentActivity {
             @Override
             public void onClick(View view) {
                 final String usernameText = ((EditText) findViewById(R.id.registerUsername)).getText().toString();
-                dbReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        if(!dataSnapshot.hasChild(usernameText)) {
-                            final String nameText = ((EditText) findViewById(R.id.registerName)).getText().toString();
-                            final String passText = ((EditText) findViewById(R.id.registerPass)).getText().toString();
-                            final String phoneText = ((EditText) findViewById(R.id.registerPhone)).getText().toString();
-                            final String realNameText = ((EditText) findViewById(R.id.registerRealName)).getText().toString();
-                            final String salt = ((int)(Math.random()*10000000))+""+((int)(Math.random()*10000000))+""+((int)(Math.random()*10000000))+""+((int)(Math.random()*10000000));
-                            final String hashSaltedPass = sha256(passText+salt);
-                            dbReference.child(usernameText).child("password").setValue(hashSaltedPass);
-                            dbReference.child(usernameText).child("salt").setValue(salt);
-                            dbReference.child(usernameText).child("email").setValue(nameText);
-                            dbReference.child(usernameText).child("phone").setValue(phoneText);
-                            dbReference.child(usernameText).child("realName").setValue(realNameText).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    if(task.isSuccessful()) {
-                                        runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                Toast.makeText(getApplicationContext(),"Registered!",Toast.LENGTH_SHORT).show();
+                if(!usernameText.equals("")) {
+                    dbReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            if (!dataSnapshot.hasChild(usernameText)) {
+                                final String nameText = ((EditText) findViewById(R.id.registerName)).getText().toString();
+                                final String passText = ((EditText) findViewById(R.id.registerPass)).getText().toString();
+                                final String phoneText = ((EditText) findViewById(R.id.registerPhone)).getText().toString();
+                                final String realNameText = ((EditText) findViewById(R.id.registerRealName)).getText().toString();
+                                final String addressText = ((EditText) findViewById(R.id.registerAddress)).getText().toString();
+                                final String salt = ((int) (Math.random() * 10000000)) + "" + ((int) (Math.random() * 10000000)) + "" + ((int) (Math.random() * 10000000)) + "" + ((int) (Math.random() * 10000000));
+                                final String hashSaltedPass = sha256(passText + salt);
+                                if (passText.length() < 7) {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Toast.makeText(getApplicationContext(), "Please enter a password 7 characters or longer", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                                } else if (phoneText.equals("") || addressText.equals("")) {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Toast.makeText(getApplicationContext(), "Please enter in all required fields", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                                } else {
+                                    dbReference.child(usernameText).child("password").setValue(hashSaltedPass);
+                                    dbReference.child(usernameText).child("salt").setValue(salt);
+                                    dbReference.child(usernameText).child("email").setValue(nameText);
+                                    dbReference.child(usernameText).child("phone").setValue(phoneText);
+                                    LatLng latlongs = getLocationFromAddress(getApplicationContext(), addressText);
+                                    dbReference.child(usernameText).child("curLat").setValue(latlongs.latitude + "");
+                                    dbReference.child(usernameText).child("curLong").setValue(latlongs.longitude + "");
+                                    dbReference.child(usernameText).child("realName").setValue(realNameText).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if (task.isSuccessful()) {
+                                                runOnUiThread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        Toast.makeText(getApplicationContext(), "Registered!", Toast.LENGTH_SHORT).show();
+                                                    }
+                                                });
+                                                editor.putString("meetHere-username", usernameText);
+                                                editor.putString("meetHere-realName", realNameText);
+                                                editor.commit();
+                                                username = usernameText;
+                                                mainUI();
                                             }
-                                        });
-                                        editor.putString("meetHere-username",usernameText);
-                                        editor.putString("meetHere-realName", realNameText);
-                                        editor.commit();
-                                        mainUI();
+                                        }
+                                    });
+                                }
+                            }
+                            else{
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(getApplicationContext(), "Username taken", Toast.LENGTH_LONG).show();
                                     }
-                                }
-                            });
+                                });
+                            }
                         }
-                        else {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Toast.makeText(getApplicationContext(),"Username taken",Toast.LENGTH_LONG).show();
-                                }
-                            });
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
                         }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
-                dbReference.child("registeringUser").setValue("1");
-                dbReference.child("registeringUser").removeValue();
+                    });
+                    dbReference.child("registeringUser").setValue("1");
+                    dbReference.child("registeringUser").removeValue();
+                }
+                else {
+                    Toast.makeText(getApplicationContext(),"Please enter in all required fields.",Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -359,6 +439,7 @@ public class MainActivity extends FragmentActivity {
                 }
                 userPhones.add(dataSnapshot.child(username).child("phone").getValue().toString());
                 latlongs.add(new LatLng(Double.parseDouble(dataSnapshot.child(username).child("curLat").getValue().toString()),Double.parseDouble(dataSnapshot.child(username).child("curLong").getValue().toString())));
+                doneGetting = true;
             }
 
             @Override
@@ -368,5 +449,60 @@ public class MainActivity extends FragmentActivity {
         });
         dbReference.child(username).child("requestingStuff").setValue("1");
         dbReference.child(username).child("requestingStuff").removeValue();
+    }
+    public LatLng getLocationFromAddress(Context context, String strAddress) {
+
+        Geocoder coder = new Geocoder(context);
+        List<Address> address;
+        LatLng p1 = null;
+
+        try {
+            address = coder.getFromLocationName(strAddress, 5);
+            if (address == null) {
+                return null;
+            }
+            Address location = address.get(0);
+            location.getLatitude();
+            location.getLongitude();
+
+            p1 = new LatLng(location.getLatitude(), location.getLongitude() );
+
+        } catch (Exception ex) {
+
+            ex.printStackTrace();
+        }
+
+        return p1;
+    }
+    public boolean hasInternetAccess() {
+        new Thread() {
+            public void run() {
+                if (isNetworkAvailable()) {
+                    try {
+                        HttpURLConnection urlc = (HttpURLConnection)
+                                (new URL("http://clients3.google.com/generate_204")
+                                        .openConnection());
+                        urlc.setRequestProperty("User-Agent", "Android");
+                        urlc.setRequestProperty("Connection", "close");
+                        urlc.setConnectTimeout(500);
+                        urlc.connect();
+                        hasNetworking = (urlc.getResponseCode() == 204 &&
+                                urlc.getContentLength() == 0);
+                    } catch (IOException e) {hasNetworking = false;}
+                }
+                else {
+                    hasNetworking = false;
+                }
+                doneCheckingNetwork = true;
+            }
+        }.start();
+        while(!doneCheckingNetwork);
+        return hasNetworking;
+    }
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null;
     }
 }
