@@ -79,31 +79,70 @@ public class FriendsFragment extends Fragment {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             if(dataSnapshot.hasChild(addstr)) {
-                                if(dataSnapshot.child(addstr).hasChild("pending")) {
-                                    ArrayList<String> theirPending = dataSnapshot.child(addstr).child("pending").getValue(type);
-                                    if(in(theirPending,MainActivity.username)==-1) {
+                                ArrayList<String> theirFriends;
+                                ArrayList<String> myFriends;
+                                if(dataSnapshot.child(addstr).hasChild("friends")) {
+                                    theirFriends = dataSnapshot.child(addstr).child("friends").getValue(type);
+                                }
+                                else {
+                                    theirFriends = new ArrayList<String>();
+                                }
+                                if(dataSnapshot.child(MainActivity.username).hasChild("friends")) {
+                                    myFriends = dataSnapshot.child(MainActivity.username).child("friends").getValue(type);
+                                }
+                                else {
+                                    myFriends = new ArrayList<String>();
+                                }
+
+                                if(in(theirFriends,MainActivity.username)==-1) {
+                                    if (dataSnapshot.child(addstr).hasChild("pending")) {
+                                        ArrayList<String> theirPending = dataSnapshot.child(addstr).child("pending").getValue(type);
+                                        ArrayList<String> myPending = dataSnapshot.child(MainActivity.username).child("pending").getValue(type);
+                                        if(myPending == null) myPending = new ArrayList<String>();
+                                        if(theirPending == null) theirPending = new ArrayList<String>();
+                                        int ind = in(myPending, addstr);
+                                        if (ind != -1) {
+                                            myPending.remove(ind);
+                                            theirFriends.add(MainActivity.username);
+                                            myFriends.add(addstr);
+                                            dbReference.child(addstr).child("friends").setValue(theirFriends);
+                                            dbReference.child(MainActivity.username).child("friends").setValue(myFriends);
+                                            MainActivity.mainContext.runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    Toast.makeText(MainActivity.mainContext, "Friend added!", Toast.LENGTH_SHORT).show();
+                                                }
+                                            });
+                                        } else if (in(theirPending, MainActivity.username) == -1) {
+                                            theirPending.add(MainActivity.username);
+                                            dbReference.child(addstr).child("pending").setValue(theirPending);
+                                            MainActivity.mainContext.runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    Toast.makeText(MainActivity.mainContext, "Friend added!", Toast.LENGTH_SHORT).show();
+                                                }
+                                            });
+                                        } else {
+                                            MainActivity.mainContext.runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    Toast.makeText(MainActivity.mainContext, "You are still in this user's pending requests", Toast.LENGTH_SHORT).show();
+                                                }
+                                            });
+                                        }
+                                    } else {
+                                        ArrayList<String> theirPending = new ArrayList<String>();
                                         theirPending.add(MainActivity.username);
                                         dbReference.child(addstr).child("pending").setValue(theirPending);
-                                        MainActivity.mainContext.runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                Toast.makeText(MainActivity.mainContext, "Friend added!", Toast.LENGTH_SHORT).show();
-                                            }
-                                        });
-                                    }
-                                    else {
-                                        MainActivity.mainContext.runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                Toast.makeText(MainActivity.mainContext,"You are still in this user's pending requests",Toast.LENGTH_SHORT).show();
-                                            }
-                                        });
                                     }
                                 }
                                 else {
-                                    ArrayList<String> theirPending = new ArrayList<String>();
-                                    theirPending.add(MainActivity.username);
-                                    dbReference.child(addstr).child("pending").setValue(theirPending);
+                                    MainActivity.mainContext.runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Toast.makeText(MainActivity.mainContext, "You are already friends.", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
                                 }
                             }
                             else {

@@ -85,79 +85,80 @@ public class PendingFragment extends Fragment {
         ((ListView) fragView.findViewById(R.id.pending)).setAdapter(adapter);
     }
     public void addPending(final String name) {
-        new Thread() {
-            public void run() {
-                dbReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        if(dataSnapshot.hasChild(name)) {
-                            if (dataSnapshot.child(MainActivity.username).hasChild("friends")) {
-                                ArrayList<String> curFriends = dataSnapshot.child(MainActivity.username).child("friends").getValue(type);
-                                curFriends.add(name);
-                                dbReference.child(MainActivity.username).child("friends").setValue(curFriends);
-                            }
-                            else {
-                                ArrayList<String> curFriends = new ArrayList<String>();
-                                curFriends.add(name);
-                                dbReference.child(MainActivity.username).child("friends").setValue(curFriends);
-                            }
-                            if (dataSnapshot.child(name).hasChild("friends")) {
-                                ArrayList<String> curFriends = dataSnapshot.child(name).child("friends").getValue(type);
-                                curFriends.add(MainActivity.username);
-                                dbReference.child(name).child("friends").setValue(curFriends);
-                            }
-                            else {
-                                ArrayList<String> curFriends = new ArrayList<String>();
-                                curFriends.add(MainActivity.username);
-                                dbReference.child(name).child("friends").setValue(curFriends);
-                            }
-                            ArrayList<String> curPending = dataSnapshot.child(MainActivity.username).child("pending").getValue(type);
-                            int index = in(curPending,name);
-                            if(index!=-1) curPending.remove(index);
-                            dbReference.child(MainActivity.username).child("pending").setValue(curPending);
-                        }
-                        else {
-                            MainActivity.mainContext.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Toast.makeText(MainActivity.mainContext,"This user could not be found",Toast.LENGTH_SHORT).show();
+        if(!name.equals("")) {
+            new Thread() {
+                public void run() {
+                    dbReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            if (dataSnapshot.hasChild(name)) {
+                                if (dataSnapshot.child(MainActivity.username).hasChild("friends")) {
+                                    ArrayList<String> curFriends = dataSnapshot.child(MainActivity.username).child("friends").getValue(type);
+                                    curFriends.add(name);
+                                    dbReference.child(MainActivity.username).child("friends").setValue(curFriends);
+                                } else {
+                                    ArrayList<String> curFriends = new ArrayList<String>();
+                                    curFriends.add(name);
+                                    dbReference.child(MainActivity.username).child("friends").setValue(curFriends);
                                 }
-                            });
+                                if (dataSnapshot.child(name).hasChild("friends")) {
+                                    ArrayList<String> curFriends = dataSnapshot.child(name).child("friends").getValue(type);
+                                    curFriends.add(MainActivity.username);
+                                    dbReference.child(name).child("friends").setValue(curFriends);
+                                } else {
+                                    ArrayList<String> curFriends = new ArrayList<String>();
+                                    curFriends.add(MainActivity.username);
+                                    dbReference.child(name).child("friends").setValue(curFriends);
+                                }
+                                ArrayList<String> curPending = dataSnapshot.child(MainActivity.username).child("pending").getValue(type);
+                                int index = in(curPending, name);
+                                if (index != -1) curPending.remove(index);
+                                dbReference.child(MainActivity.username).child("pending").setValue(curPending);
+                            } else {
+                                MainActivity.mainContext.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(MainActivity.mainContext, "This user could not be found", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
                         }
-                    }
 
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
 
-                    }
-                });
-                dbReference.child(MainActivity.username).child("addingPending").setValue("1");
-                dbReference.child(MainActivity.username).child("addingPending").removeValue();
-            }
-        }.start();
+                        }
+                    });
+                    dbReference.child(MainActivity.username).child("addingPending").setValue("1");
+                    dbReference.child(MainActivity.username).child("addingPending").removeValue();
+                }
+            }.start();
+        }
 
     }
     public void removePending(final String name) {
-        new Thread() {
-            public void run() {
-                dbReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        ArrayList<String> curPending = dataSnapshot.child(MainActivity.username).child("pending").getValue(type);
-                        int index = in(curPending,name);
-                        if(index!=-1) curPending.remove(index);
-                        dbReference.child(MainActivity.username).child("pending").setValue(curPending);
-                    }
+        if(!name.equals("")) {
+            new Thread() {
+                public void run() {
+                    dbReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            ArrayList<String> curPending = dataSnapshot.child(MainActivity.username).child("pending").getValue(type);
+                            int index = in(curPending, name);
+                            if (index != -1) curPending.remove(index);
+                            dbReference.child(MainActivity.username).child("pending").setValue(curPending);
+                        }
 
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
 
-                    }
-                });
-                dbReference.child(MainActivity.username).child("removingPending").setValue("1");
-                dbReference.child(MainActivity.username).child("removingPending").removeValue();
-            }
-        }.start();
+                        }
+                    });
+                    dbReference.child(MainActivity.username).child("removingPending").setValue("1");
+                    dbReference.child(MainActivity.username).child("removingPending").removeValue();
+                }
+            }.start();
+        }
     }
     public int in(ArrayList<String> arr, String check) {
         for(int i = 0; i < arr.size(); i++) {

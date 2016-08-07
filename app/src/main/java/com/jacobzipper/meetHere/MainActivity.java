@@ -35,9 +35,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.ValueEventListener;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,11 +52,8 @@ public class MainActivity extends FragmentActivity {
     public static ArrayList<LatLng> latlongs = new ArrayList<LatLng>();
     public static ArrayList<String> userPhones = new ArrayList<String>();
     public static ArrayList<String> newUsers = new ArrayList<String>();
-    public static ArrayList<LatLng> newLatLongs = new ArrayList<LatLng>();
     public static FragmentActivity mainContext;
     boolean doneGetting = false;
-    boolean hasNetworking;
-    boolean doneCheckingNetwork = false;
     GenericTypeIndicator<ArrayList<String>> type = new GenericTypeIndicator<ArrayList<String>>() {};
     ListView mDrawerList;
     RelativeLayout mDrawerPane;
@@ -110,7 +104,7 @@ public class MainActivity extends FragmentActivity {
             findViewById(R.id.registerButtonShit).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if(!hasInternetAccess()) {
+                    if(!isNetworkAvailable()) {
                         Toast.makeText(getApplicationContext(),"Please register when you have an internet connection.",Toast.LENGTH_LONG).show();
                         finish();
                     }
@@ -473,31 +467,6 @@ public class MainActivity extends FragmentActivity {
         }
 
         return p1;
-    }
-    public boolean hasInternetAccess() {
-        new Thread() {
-            public void run() {
-                if (isNetworkAvailable()) {
-                    try {
-                        HttpURLConnection urlc = (HttpURLConnection)
-                                (new URL("http://clients3.google.com/generate_204")
-                                        .openConnection());
-                        urlc.setRequestProperty("User-Agent", "Android");
-                        urlc.setRequestProperty("Connection", "close");
-                        urlc.setConnectTimeout(500);
-                        urlc.connect();
-                        hasNetworking = (urlc.getResponseCode() == 204 &&
-                                urlc.getContentLength() == 0);
-                    } catch (IOException e) {hasNetworking = false;}
-                }
-                else {
-                    hasNetworking = false;
-                }
-                doneCheckingNetwork = true;
-            }
-        }.start();
-        while(!doneCheckingNetwork);
-        return hasNetworking;
     }
     private boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager
