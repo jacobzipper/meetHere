@@ -6,7 +6,7 @@
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="350dp"
+        android:layout_height="match_parent"
         android:id="@+id/scrollView"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true" >
@@ -39,7 +39,7 @@
                 android:id="@+id/registerRealName"
                 android:layout_below="@+id/registerPhone"
                 android:layout_centerHorizontal="true"
-                android:hint="name"
+                android:hint="*name"
                 android:layout_marginTop="10dp" />
 
             <EditText

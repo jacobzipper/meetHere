@@ -5,8 +5,6 @@ import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.location.Address;
-import android.location.Geocoder;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -34,10 +32,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.ValueEventListener;
+import com.google.maps.GeoApiContext;
+import com.google.maps.GeocodingApi;
+import com.google.maps.model.GeocodingResult;
 
 import java.security.MessageDigest;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by zipper on 7/22/16.
@@ -54,6 +54,8 @@ public class MainActivity extends FragmentActivity {
     public static ArrayList<String> newUsers = new ArrayList<String>();
     public static FragmentActivity mainContext;
     boolean doneGetting = false;
+    boolean doneLoc = false;
+    LatLng latlngs;
     GenericTypeIndicator<ArrayList<String>> type = new GenericTypeIndicator<ArrayList<String>>() {};
     ListView mDrawerList;
     RelativeLayout mDrawerPane;
@@ -68,7 +70,6 @@ public class MainActivity extends FragmentActivity {
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
         editor = prefs.edit();
         username = prefs.getString("meetHere-username","Default");
-        if(mainContext==null) FirebaseDatabase.getInstance().setPersistenceEnabled(true);
         mainContext = this;
         dbReference = FirebaseDatabase.getInstance().getReference("users");
         if(!username.equals("Default")) {
@@ -320,80 +321,93 @@ public class MainActivity extends FragmentActivity {
             @Override
             public void onClick(View view) {
                 final String usernameText = ((EditText) findViewById(R.id.registerUsername)).getText().toString();
-                if(!usernameText.equals("")) {
-                    dbReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            if (!dataSnapshot.hasChild(usernameText)) {
-                                final String nameText = ((EditText) findViewById(R.id.registerName)).getText().toString();
-                                final String passText = ((EditText) findViewById(R.id.registerPass)).getText().toString();
-                                final String phoneText = ((EditText) findViewById(R.id.registerPhone)).getText().toString();
-                                final String realNameText = ((EditText) findViewById(R.id.registerRealName)).getText().toString();
-                                final String addressText = ((EditText) findViewById(R.id.registerAddress)).getText().toString();
-                                final String salt = ((int) (Math.random() * 10000000)) + "" + ((int) (Math.random() * 10000000)) + "" + ((int) (Math.random() * 10000000)) + "" + ((int) (Math.random() * 10000000));
-                                final String hashSaltedPass = sha256(passText + salt);
-                                if (passText.length() < 7) {
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            Toast.makeText(getApplicationContext(), "Please enter a password 7 characters or longer", Toast.LENGTH_SHORT).show();
-                                        }
-                                    });
-                                } else if (phoneText.equals("") || addressText.equals("")) {
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            Toast.makeText(getApplicationContext(), "Please enter in all required fields", Toast.LENGTH_SHORT).show();
-                                        }
-                                    });
-                                } else {
-                                    dbReference.child(usernameText).child("password").setValue(hashSaltedPass);
-                                    dbReference.child(usernameText).child("salt").setValue(salt);
-                                    dbReference.child(usernameText).child("email").setValue(nameText);
-                                    dbReference.child(usernameText).child("phone").setValue(phoneText);
-                                    LatLng latlongs = getLocationFromAddress(getApplicationContext(), addressText);
-                                    dbReference.child(usernameText).child("curLat").setValue(latlongs.latitude + "");
-                                    dbReference.child(usernameText).child("curLong").setValue(latlongs.longitude + "");
-                                    dbReference.child(usernameText).child("realName").setValue(realNameText).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<Void> task) {
-                                            if (task.isSuccessful()) {
-                                                runOnUiThread(new Runnable() {
-                                                    @Override
-                                                    public void run() {
-                                                        Toast.makeText(getApplicationContext(), "Registered!", Toast.LENGTH_SHORT).show();
-                                                    }
-                                                });
-                                                editor.putString("meetHere-username", usernameText);
-                                                editor.putString("meetHere-realName", realNameText);
-                                                editor.commit();
-                                                username = usernameText;
-                                                mainUI();
+                final String addressText = ((EditText) findViewById(R.id.registerAddress)).getText().toString();
+                new Thread() {
+                    public void run() {
+                        latlngs = getLocationFromAddress(addressText);
+                    }
+                }.start();
+                while(!doneLoc) {
+                    try {
+                        Thread.sleep(25);
+                    } catch (InterruptedException e) {e.printStackTrace();}
+                }
+                if(latlngs!=null) {
+                    if (!usernameText.equals("")) {
+                        dbReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                if (!dataSnapshot.hasChild(usernameText)) {
+                                    final String nameText = ((EditText) findViewById(R.id.registerName)).getText().toString();
+                                    final String passText = ((EditText) findViewById(R.id.registerPass)).getText().toString();
+                                    final String phoneText = ((EditText) findViewById(R.id.registerPhone)).getText().toString();
+                                    final String realNameText = ((EditText) findViewById(R.id.registerRealName)).getText().toString();
+                                    final String salt = ((int) (Math.random() * 10000000)) + "" + ((int) (Math.random() * 10000000)) + "" + ((int) (Math.random() * 10000000)) + "" + ((int) (Math.random() * 10000000));
+                                    final String hashSaltedPass = sha256(passText + salt);
+                                    if (passText.length() < 7) {
+                                        runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                Toast.makeText(getApplicationContext(), "Please enter a password 7 characters or longer", Toast.LENGTH_SHORT).show();
                                             }
+                                        });
+                                    } else if (phoneText.equals("") || addressText.equals("") || realNameText.equals("")) {
+                                        runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                Toast.makeText(getApplicationContext(), "Please enter in all required fields", Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+                                    } else {
+                                        dbReference.child(usernameText).child("password").setValue(hashSaltedPass);
+                                        dbReference.child(usernameText).child("salt").setValue(salt);
+                                        dbReference.child(usernameText).child("email").setValue(nameText);
+                                        dbReference.child(usernameText).child("phone").setValue(phoneText);
+                                        dbReference.child(usernameText).child("curLat").setValue(latlngs.latitude + "");
+                                        dbReference.child(usernameText).child("curLong").setValue(latlngs.longitude + "");
+                                        dbReference.child(usernameText).child("realName").setValue(realNameText).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+                                                if (task.isSuccessful()) {
+                                                    runOnUiThread(new Runnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            Toast.makeText(getApplicationContext(), "Registered!", Toast.LENGTH_SHORT).show();
+                                                        }
+                                                    });
+                                                    editor.putString("meetHere-username", usernameText);
+                                                    editor.putString("meetHere-realName", realNameText);
+                                                    editor.commit();
+                                                    username = usernameText;
+                                                    mainUI();
+                                                }
+                                            }
+                                        });
+                                    }
+                                } else {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Toast.makeText(getApplicationContext(), "Username taken", Toast.LENGTH_LONG).show();
                                         }
                                     });
                                 }
                             }
-                            else{
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        Toast.makeText(getApplicationContext(), "Username taken", Toast.LENGTH_LONG).show();
-                                    }
-                                });
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
                             }
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
-                    dbReference.child("registeringUser").setValue("1");
-                    dbReference.child("registeringUser").removeValue();
+                        });
+                        dbReference.child("registeringUser").setValue("1");
+                        dbReference.child("registeringUser").removeValue();
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Please enter in all required fields.", Toast.LENGTH_SHORT).show();
+                    }
                 }
                 else {
-                    Toast.makeText(getApplicationContext(),"Please enter in all required fields.",Toast.LENGTH_SHORT).show();
+                    doneLoc = false;
+                    Toast.makeText(getApplicationContext(),"Please enter a valid address.",Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -444,29 +458,17 @@ public class MainActivity extends FragmentActivity {
         dbReference.child(username).child("requestingStuff").setValue("1");
         dbReference.child(username).child("requestingStuff").removeValue();
     }
-    public LatLng getLocationFromAddress(Context context, String strAddress) {
-
-        Geocoder coder = new Geocoder(context);
-        List<Address> address;
-        LatLng p1 = null;
-
+    public LatLng getLocationFromAddress(String strAddress) {
         try {
-            address = coder.getFromLocationName(strAddress, 5);
-            if (address == null) {
-                return null;
-            }
-            Address location = address.get(0);
-            location.getLatitude();
-            location.getLongitude();
+            GeoApiContext geoContext = new GeoApiContext().setApiKey("AIzaSyDlT6Zz_Xh2BfFhB6LWQbRNZ0KkdLyVTRE");
+            GeocodingResult[] results = GeocodingApi.geocode(geoContext, strAddress).await();
+            com.google.maps.model.LatLng temp = results[0].geometry.location;
+            doneLoc = true;
+            return (new LatLng(temp.lat,temp.lng));
 
-            p1 = new LatLng(location.getLatitude(), location.getLongitude() );
-
-        } catch (Exception ex) {
-
-            ex.printStackTrace();
-        }
-
-        return p1;
+        }catch(Exception e){e.printStackTrace();}
+        doneLoc = true;
+        return null;
     }
     private boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager

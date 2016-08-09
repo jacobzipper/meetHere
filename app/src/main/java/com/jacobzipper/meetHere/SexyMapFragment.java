@@ -48,13 +48,14 @@ import retrofit2.Response;
 
 public class SexyMapFragment extends FragmentActivity implements GoogleMap.OnInfoWindowLongClickListener,GoogleMap.OnInfoWindowClickListener, OnMapReadyCallback {
     public static boolean backButton = false;
-    OnMapReadyCallback fuckThis = this;
+    OnMapReadyCallback mapListener = this;
     ArrayList<Business> businesses = new ArrayList<Business>();
     ArrayList<String> businessNames = new ArrayList<String>();
     ArrayList<String> textPhones = new ArrayList<String>();
-    YelpAPIFactory apiFactory = new YelpAPIFactory("8tEL_-l8SMpai0PV0dUnpA", "ZO9RlcebiOqKcJiYrUdZfc85hj0", "FXn_gfDzucwbr_BEma3uFxvHxq3M94H2", "3bqVIJcP5jI3uOYeLwQAgKX27A8");
+    YelpAPIFactory apiFactory = new YelpAPIFactory("8tEL_-l8SMpai0PV0dUnpA", "ZO9RlcebiOqKcJiYrUdZfc85hj0", "idZk5bVbMcXMEeF0DlaOjPLws2N9jeQO", "SumdBI7ibHJhYT6iUf74LHu3M-8");
     YelpAPI yelpAPI = apiFactory.createAPI();
     String curTerm = "";
+    Toast searchingToast;
     boolean searchDone = false;
     double topY;
     double bottomY;
@@ -65,6 +66,7 @@ public class SexyMapFragment extends FragmentActivity implements GoogleMap.OnInf
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sexy_map);
+        searchingToast = Toast.makeText(this,"Searching...",Toast.LENGTH_LONG);
         MobileAds.initialize(getApplicationContext(), "ca-app-pub-4122970782896620/5395595791");
         AdView mAdView = (AdView) findViewById(R.id.adMap);
         AdRequest adRequest = new AdRequest.Builder().build();
@@ -111,17 +113,19 @@ public class SexyMapFragment extends FragmentActivity implements GoogleMap.OnInf
         findViewById(R.id.foodButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                searchingToast.show();
                 curTerm = "food";
                 SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-                mapFragment.getMapAsync(fuckThis);
+                mapFragment.getMapAsync(mapListener);
             }
         });
         findViewById(R.id.studyButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                searchingToast.show();
                 curTerm = "study";
                 SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-                mapFragment.getMapAsync(fuckThis);
+                mapFragment.getMapAsync(mapListener);
             }
         });
         findViewById(R.id.otherButton).setOnClickListener(new View.OnClickListener() {
@@ -170,9 +174,10 @@ public class SexyMapFragment extends FragmentActivity implements GoogleMap.OnInf
                 tempView.findViewById(R.id.popupDoSearch).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
+                        searchingToast.show();
                         curTerm = ((EditText)tempView.findViewById(R.id.popupSearchTerm)).getText().toString();
                         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-                        mapFragment.getMapAsync(fuckThis);
+                        mapFragment.getMapAsync(mapListener);
                         findViewById(R.id.sexyMapLayout).setBackgroundColor(Color.rgb(255, 255, 255));
                         findViewById(R.id.backMapButton).setAlpha(1f);
                         findViewById(R.id.backMapButton).setClickable(true);
@@ -192,7 +197,7 @@ public class SexyMapFragment extends FragmentActivity implements GoogleMap.OnInf
 
 
     @Override
-    public void onMapReady(GoogleMap googleMap) {
+    public void onMapReady(final GoogleMap googleMap) {
         googleMap.clear();
         googleMap.setOnInfoWindowClickListener(this);
         for(String name : MainActivity.checked) {
@@ -202,16 +207,36 @@ public class SexyMapFragment extends FragmentActivity implements GoogleMap.OnInf
             googleMap.addMarker(new MarkerOptions().position(MainActivity.latlongs.get(index)).title(name).snippet(curPhone));
         }
         googleMap.addMarker(new MarkerOptions().position(new LatLng(MainActivity.midLat, MainActivity.midLong)).title("MIDPOINT").icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))));
-        if(!curTerm.equals("")) {
-            businesses.clear();
-            search(curTerm);
-            while (!searchDone) ;
-            searchDone = false;
-            for (Business business : businesses) {
-                googleMap.addMarker(new MarkerOptions().position(new LatLng(business.location().coordinate().latitude(), business.location().coordinate().longitude())).title(business.name()).snippet(getAddressFromName(business.name())).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
-            }
+        if(curTerm.equals("")) {
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(new LatLngBounds(new LatLng(bottomY, leftX), new LatLng(topY, rightX)), 0),2000,null);
         }
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(new LatLngBounds(new LatLng(bottomY,leftX),new LatLng(topY,rightX)),0));
+        else {
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(MainActivity.midLat,MainActivity.midLong),10));
+        }
+        new Thread() {
+            public void run() {
+                if(!curTerm.equals("")) {
+                    businesses.clear();
+                    search(curTerm);
+
+                    while (!searchDone) {
+                        try {
+                            this.sleep(10);
+                        }catch (Exception e) {e.printStackTrace();}
+                    }
+                    searchDone = false;
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            for (Business business : businesses) {
+                                googleMap.addMarker(new MarkerOptions().position(new LatLng(business.location().coordinate().latitude(), business.location().coordinate().longitude())).title(business.name()).snippet(getAddressFromName(business.name())).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
+                            }
+                            searchingToast.cancel();
+                        }
+                    });
+                }
+            }
+        }.start();
         googleMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
             @Override
             public View getInfoWindow(Marker arg0) {
@@ -246,7 +271,7 @@ public class SexyMapFragment extends FragmentActivity implements GoogleMap.OnInf
             public void run() {
                 Map<String, String> params = new HashMap<>();
                 params.put("term",term);
-                params.put("limit", "10");
+                params.put("limit", "15");
                 CoordinateOptions coordinate = CoordinateOptions.builder().latitude(MainActivity.midLat).longitude(MainActivity.midLong).build();
                 Call<SearchResponse> call = yelpAPI.search(coordinate, params);
                 Response<SearchResponse> response = null;
@@ -289,8 +314,10 @@ public class SexyMapFragment extends FragmentActivity implements GoogleMap.OnInf
             for(String phoneNum : textPhones) {
                 if (ActivityCompat.checkSelfPermission(MainActivity.mainContext, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(MainActivity.mainContext, new String[]{Manifest.permission.SEND_SMS}, 1);
+                    Toast.makeText(getApplicationContext(),"Permissions granted, please click again.",Toast.LENGTH_SHORT).show();
                 }
                 else {
+                    Toast.makeText(getApplicationContext(),"Messages sent!",Toast.LENGTH_SHORT).show();
                     SmsManager sms = SmsManager.getDefault();
                     String message = "Hey, lets meet at " + marker.getTitle() + "! It's located at "+getAddressFromName(marker.getTitle())+".\n\nSent from meetHere.";
                     sms.sendTextMessage(phoneNum, null, message, null, null);
