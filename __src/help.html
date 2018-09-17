@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html class="set set-podd">
+
+	<head>
+
+		<meta charset="utf-8" lang="en uk">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Support | meetHere</title>
+
+	<!-- Favicons -->
+		<link rel="apple-touch-icon" sizes="180x180" href="./img/favicons/apple-touch-icon.png">
+		<link rel="icon" type="image/png" href="./img/favicons/favicon-32x32.png" sizes="32x32">
+		<link rel="icon" type="image/png" href="./img/favicons/favicon-16x16.png" sizes="16x16">
+		<link rel="manifest" href="./img/favicons/manifest.json">
+		<link rel="mask-icon" href="http://ayazhafiz.com/meetHere/img/favicons/safari-pinned-tab.svg" color="#eb5757">
+		<link rel="shortcut icon" href="./img/favicons/favicon.ico">
+		<meta name="msapplication-config" content="./img/favicons/browserconfig.xml">
+		<meta name="theme-color" content="#ffffff">
+
+	<!-- Fonts ## we can self-serve later, not all fonts may be used -->
+		<!-- Font Awesome --><script src="https://use.fontawesome.com/f4adeaf9c5.js"></script>
+		<!-- Avenir --><link href="./Avenir/stylesheet.css" rel="stylesheet" type="text/css" media="all">
+
+	<!-- Styles -->
+		<link rel="stylesheet" type="text/css" href="./css/style.min.css">
+		<link rel="stylesheet" type="text/css" href="./css/molekule.min.css">
+		<link rel="stylesheet" type="text/css" href="./css/jquery.powertip-dark.min.css">
+
+	<!-- Scripts -->
+		<script src="https://code.jquery.com/jquery-2.1.4.min.js" podsum="sha256-8WqyJLuWKRBVhxXIL1jBDD7SDxU936oZkCnxQbWwJVw="></script>
+		<script src="./js/jquery.powertip.min.js"></script>
+		<script src="./js/pageload.min.js"></script>
+
+	</head>
+
+	<body class="animsition">
+		<script>
+			if (location.protocol != 'https:')
+				location.href = 'https:' + window.location.href.substring(window.location.protocol.length);
+		</script>
+
+		<div class="se-pre-con">
+			<div class="img-holder" style="position:absolute;top:42%;transform:translate(-50%,-50%) scale(0.1);-webkit-transform:translate(-50%,-50%) scale(0.1)">
+				<img src="./img/meetHere.svg" style="position: absolute;text-align: center;-webkit-animation: pulser 1s ease-in-out infinite;animation: pulser 1s ease-in-out infinite">
+			</div>
+		</div>
+
+		<!-- navbar -->
+		<div class="navbar hero">
+			<div class="col-80 top">
+				<a class="brand logo animsition-link" href="./">
+				</a>
+			</div>
+			<div class="nav-links">
+				<a class="page-link animsition-link" href="./sign-up">
+					Sign Up</a>
+				<span class="spacer"></span>
+				<a id="open-modal" class="page-link" href="#" data-modal="#modal1">
+					Login</a>
+			</div>
+		</div>
+		<!-- navbar END -->
+
+		<!-- main -->
+		<div id="support-hero" class="center-total">
+			<div class="sup">How can we help you?</div>
+			<div id="pass" class="sup sup-name">Password/Username</div>
+			<div id="friends" class="sup sup-name">Adding Friends</div>
+			<div id="payment" class="sup sup-name">Payment Info</div>
+			<div id="location" class="sup sup-name">Location</div>
+			<div id="misc" class="sup sup-name">Other</div>
+		</div>
+		<!-- main END -->
+
+		<!-- password support -->
+		<div id="pass-support" class="col-100 row-80 support-backdrop" style="display:none">
+			<div class="support-backdrop-title" style="background:white;padding:0 0 0.5em 1em;font-size:2em;color:#EB5757">Password/Username<span style="position:absolute;right:1em;color:black;line-height:1.25em"><i class="fa fa-angle-down"></i></span></div>
+			<div class="text-center" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">
+				<div id="password-main">
+					<h1 style="color:#fff">Enter your email:</h1>
+					<input id="password-email" class="material" placeholder="name@example.com" type="email" autocorrect="false" spellcheck="false" ontouchstart="">
+					<br>
+					<div class="support-button password-button material-button inline" style="display:none">Send username</div>
+					<div class="support-button password-button material-button inline" style="display:none">Reset password</div>
+				</div>
+				<div id="password-callback" style="display:none">
+					<h1 style="color:#fff">Thanks! Check your email for the next steps.</h1>
+				</div>
+			</div>
+		</div>
+		<!-- password support END -->
+
+		<!-- friends support -->
+		<div id="friends-support" class="col-100 row-80 support-backdrop" style="display:none">
+			<div class="support-backdrop-title" style="background:white;padding:0 0 0.5em 1em;font-size:2em;color:#EB5757">Adding Friends<span style="position:absolute;right:1em;color:black;line-height:1.25em"><i class="fa fa-angle-down"></i></span></div>
+		</div>
+		<!-- friends support END -->
+
+		<!-- payment support -->
+		<div id="payment-support" class="col-100 row-80 support-backdrop" style="display:none">
+			<div class="support-backdrop-title" style="background:white;padding:0 0 0.5em 1em;font-size:2em;color:#EB5757">Payment Info<span style="position:absolute;right:1em;color:black;line-height:1.25em"><i class="fa fa-angle-down"></i></span></div>
+		</div>
+		<!-- password support END -->
+
+		<!-- location support -->
+		<div id="location-support" class="col-100 row-80 support-backdrop" style="display:none">
+			<div class="support-backdrop-title" style="background:white;padding:0 0 0.5em 1em;font-size:2em;color:#EB5757">Location<span style="position:absolute;right:1em;color:black;line-height:1.25em"><i class="fa fa-angle-down"></i></span></div>
+		</div>
+		<!-- location support END -->
+
+		<!-- misc support -->
+		<div id="misc-support" class="col-100 row-80 support-backdrop" style="display:none">
+			<div class="support-backdrop-title" style="background:white;padding:0 0 0.5em 1em;font-size:2em;color:#EB5757">Other<span style="position:absolute;right:1em;color:black;line-height:1.25em"><i class="fa fa-angle-down"></i></span></div>
+		</div>
+		<!-- misc support END -->
+		
+		<!-- footer -->
+		<div id="footer" class="footer-parent" style="padding-bottom:2.5em">
+			<div class="footer-left">
+				&copy; meetHere<span class="hidden-mobile"> 2017</span><span class="hidden-desktop" style="line-height:1.5em"> '17</span>
+				<a href="#" class="page-link help footer mleft hidden-mobile terms">Terms</a>
+				<a class="page-link help footer mleft hidden-mobile status" style="cursor:pointer">Status</a>
+				<a href="./help" class="page-link help footer mleft hidden-mobile help-f">Help</a>
+			</div>
+			<div class="footer-right">
+				<a href="#" class="page-link help footer mleft hidden-desktop terms">Terms</a>
+				<a class="page-link help footer mleft hidden-desktop status" style="cursor:pointer">Status</a>
+				<a href="./help" class="page-link help footer mleft hidden-desktop help-f" style="margin-right:1em">Help</a>
+				<a href="./brand" class="page-link help footer brand-f">Brand</a>
+				<a href="./contact" class="page-link help footer mleft contact">Contact</a>
+				<a href="./about" class="page-link help footer mleft about">About</a>
+			</div>
+		</div>
+		<!-- footer END -->
+
+		<!-- login modal -->
+		<div class="modal" id="modal1">
+			<div class="content" style="padding:0;margin:0;">
+				<input id="login-username" class="mo" placeholder="username" type="name" autocorrect="false" spellcheck="false" style="margin-bottom:10px;margin:none;">
+				<br>
+				<input id="login-password" class="mo" placeholder="password" type="password" autocorrect="false" spellcheck="false" style="margin:none;margin-bottom:0;">
+				<br>
+				<div id="login-status" class="" style="height:60px;line-height:60px;font-size:1.375em;padding:0;margin:0;vertical-align:middle;opacity:0"></div>
+				<button id="login-note-button" class="btn material-button close-modal animsition-link disabled" data-modal="#modal1" href="#">Login</button>
+			</div>
+		</div>
+		<!-- login modal END -->
+
+		<!-- scripts -->
+		<script src="./js/meetHere.min.js"></script>
+		<script src="./js/tooltip.min.js"></script>
+		<script>
+		$('.sup-name').on('click', function() {
+			var id = $(this).attr('id');
+			$('#support-hero').slideUp("fast", function() {
+				$('#' + id + '-support').slideDown("fast").addClass('open');
+			});
+		});
+
+		$('.support-backdrop-title').on('click', function() {
+			$('.support-backdrop').slideUp("fast", function() {
+				$(this).removeClass('open');
+				$('#support-hero').slideDown("fast");
+			});
+			$('#password-callback').hide("fast", function() {
+				$('#password-main').show();
+			});
+		});
+
+		$('.password-button').on('click', function() {
+			$('#password-main').hide("fast", function() {
+				$('#password-callback').show();
+			});
+		});
+
+		$(document).keyup(function(e) {
+			email = $('#password-email').val();
+			if(!(validateEmail(email)))
+				$('.password-button').hide();
+			else
+				$('.password-button').show();
+		});
+			
+		// lets make a footer that auto-to-bottom(s) if other content > window height
+		if (($('#misc-support').position().top + $('#misc-support').outerHeight() - window.innerHeight) <= 0)
+			$('#footer').css('position', 'absolute').css('top', window.innerHeight + 'px');
+		</script>
+
+	<!-- main container END -->
+	</body>
+
+</html>

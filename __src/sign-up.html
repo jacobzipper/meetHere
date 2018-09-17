@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html class="set set-podd">
+
+	<head>
+
+		<meta charset="utf-8" lang="en uk">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Sign Up | meetHere</title>
+
+	<!-- Favicons -->
+		<link rel="apple-touch-icon" sizes="180x180" href="./img/favicons/apple-touch-icon.png">
+		<link rel="icon" type="image/png" href="./img/favicons/favicon-32x32.png" sizes="32x32">
+		<link rel="icon" type="image/png" href="./img/favicons/favicon-16x16.png" sizes="16x16">
+		<link rel="manifest" href="./img/favicons/manifest.json">
+		<link rel="mask-icon" href="http://ayazhafiz.com/meetHere/img/favicons/safari-pinned-tab.svg" color="#eb5757">
+		<link rel="shortcut icon" href="./img/favicons/favicon.ico">
+		<meta name="msapplication-config" content="./img/favicons/browserconfig.xml">
+		<meta name="theme-color" content="#ffffff">
+
+	<!-- Fonts ## we can self-serve later, not all fonts may be used -->
+		<!-- Font Awesome --><script src="https://use.fontawesome.com/f4adeaf9c5.js"></script>
+		<!-- Avenir --><link href="./Avenir/stylesheet.css" rel="stylesheet" type="text/css" media="all">
+
+	<!-- Styles -->
+		<link rel="stylesheet" type="text/css" href="./css/style.min.css">
+		<link rel="stylesheet" type="text/css" href="./css/molekule.min.css">
+		<link rel="stylesheet" type="text/css" href="./css/jquery.powertip-dark.min.css">
+		<style>
+			@media only screen and (max-width: 799px) {
+				input:not(.mo), input:not(.mo):focus {
+					font-size: 7vw
+				}
+				.button {
+					font-size: 7vw
+				}
+				.mobile-input-max {
+					width: 90vw !important;
+				}
+				.hidden-mobile {
+					display: none !important
+				}
+			}
+		</style>
+
+	<!-- Scripts -->
+		<script src="https://code.jquery.com/jquery-2.1.4.min.js" podsum="sha256-8WqyJLuWKRBVhxXIL1jBDD7SDxU936oZkCnxQbWwJVw="></script>
+		<script src="./js/jquery.powertip.min.js"></script>
+		<script src="./js/pageload.min.js"></script>
+
+	</head>
+
+	<body class="animsition">
+		<script>
+			if (location.protocol != 'https:')
+				location.href = 'https:' + window.location.href.substring(window.location.protocol.length);
+		</script>
+
+		<div class="se-pre-con">
+			<div class="img-holder" style="position:absolute;top:42%;transform:translate(-50%,-50%) scale(0.1);-webkit-transform:translate(-50%,-50%) scale(0.1)">
+				<img src="./img/meetHere.svg" style="position: absolute;text-align: center;-webkit-animation: pulser 1s ease-in-out infinite;animation: pulser 1s ease-in-out infinite">
+			</div>
+		</div>
+
+		<!-- navbar -->
+		<div class="navbar hero">
+			<div class="col-80 top">
+				<a class="brand logo animsition-link" href="./"
+				   data-animsition-out-class="fade-out-right-sm">
+				</a>
+			</div>
+			<div class="nav-links">
+				<span class="current-page">Sign Up</span>
+				<span class="spacer"></span>
+				<a id="open-modal" class="page-link" href="#" data-modal="#modal1">
+					Login</a>
+			</div>
+		</div>
+		<!-- navbar END -->
+
+		<!-- main -->
+		<div id="centerEr" class="center-total" style="text-align:left">
+			<div id="info-container" style="padding-left:5%">
+				<div class="create-title" style="font-size:2.5em;color:#EB5757;font-weight:bold;padding-bottom:40px">Create a <span class="highlight yellow-highlight">profile</span> and start adding your friends</div>
+				<div id="first">
+					<div class="create-name" style="font-size:3em;color:#000;font-weight:bold;padding-bottom:25px">Account</div>
+					<div class="signup-input-head" style="font-size:2em;color:#000;padding-bottom:25px"><span class="highlight theme-light-highlight">Username</span></div>
+					<input id="uname" placeholder="bGanesh" type="email" autofocus="true" autocorrect="false" spellcheck="false">
+					<div class="signup-input-head" style="font-size:2em;color:#000;padding-bottom:25px">Password<span id="password-name-label" class="hidden" style="color:#FB5757"><span style="color:black">:</span> <span id="password-letter-count"></span> characters left</span></div>
+					<div class="input-container">
+						<input id="password" class="password" placeholder="password" onfocus="this.type='password'" autocorrect="false" spellcheck="false">
+						<div id="next-1" class="button material-button-h inline hidden">Next</div>
+					</div>
+				</div>
+				<div id="second" style="display:none">
+					<div class="create-name" style="font-size:3em;color:#000;font-weight:bold;padding-bottom:25px">Profile</div>
+					<div>
+						<div class="inline">
+							<div class="signup-input-head" style="font-size:2em;color:#000;padding-bottom:25px">First Name</div>
+							<input id="fname" placeholder="Baba" type="text" autocorrect="false" spellcheck="false" style="width:40vw;max-width:300px">
+						</div>
+						<div style="display:inline-block;width:10vw;max-width:25px"></div>
+						<div class="inline">
+							<div class="signup-input-head" style="font-size:2em;color:#000;padding-bottom:25px">Last Name</div>
+							<input id="lname" placeholder="Ganesh" type="text" autocorrect="false" spellcheck="false" style="width:40vw;max-width:300px">
+						</div>
+					</div>
+					<div>
+						<div class="inline">
+							<div class="signup-input-head" style="font-size:2em;color:#000;padding-bottom:25px">Email</div>
+							<input class="mobile-input-max" id="email" placeholder="name@ex.com" autocorrect="false" spellcheck="false" style="width:40vw;max-width:300px">
+						</div>
+						<div class="hidden-mobile" style="display:inline-block;width:10vw;max-width:25px"></div>
+						<div class="inline" style="margin-bottom:60px">
+							<div id="signup-label-username" class="signup-input-head" style="font-size:2em;color:#000;padding-bottom:25px">Phone Number</div>
+							<div class="input-container mobile-input-max" style="width:40vw;max-width:300px">
+								<input class="mobile-input-max input-phone" id="phone" class="password" placeholder="419-270-9201" type="text" autocorrect="false" spellcheck="false" maxlength="15" style="width:40vw;max-width:300px;margin-bottom:0">
+								<div id="next-2" class="button inline hidden">Next</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div id="third" style="display:none">
+					<div class="create-name" style="font-size:3em;color:#000;font-weight:bold;padding-bottom:25px">Home Location</div>
+					<div class="signup-input-head" style="font-size:2em;color:#000;padding-bottom:25px">Enter your address</div>
+					<div class="input-container">
+						<input id="location" class="password" placeholder="1600 Pennsylvania Ave" autocorrect="false" spellcheck="false">
+					</div>
+					<br>
+					<div id="get-location-button" class="button-left" onclick="getCurrentLoc();" style="background:#F0DAC5;margin-bottom:60px"><i class="fa fa-location-arrow"></i> Use Current Location</div><i id="current-location-pos" class="fa fa-check" style="color:limegreen;display:none;margin-left:0.5em;font-size:2em"></i><i id="current-location-neg" class="fa fa-times" style="color:#FB5757;display:none;margin-left:0.5em;font-size:2em"></i>
+					<label id="location-fail-label" class="hidden" style="font-size:0.75em;color:rgb(251, 87, 87);margin-top:0.15em;display:block;">please enable location services in your browser</label>
+					<br>
+					<div id="next-3" class="button-left hidden">Next</div>
+				</div>
+			</div>
+			
+			<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBV0Q6zglTeVi36cx0v_QeE0wkiveg97HA&libraries=places&callback=initAutocomplete" async defer></script>
+
+			<script>
+				var placeSearch, autocomplete, latitude, longitude;
+
+				function initAutocomplete() {
+					autocomplete = new google.maps.places.Autocomplete(
+						(document.getElementById('location')),
+						{types: ['geocode']}
+					);
+					
+  					autocomplete.addListener('place_changed', getCoors);
+				}
+				
+				function getCoors() {
+					var place = autocomplete.getPlace();
+					latitude = place.geometry.location.lat();
+					longitude = place.geometry.location.lng();
+					$('#next-3').removeClass('hidden');
+				}
+				
+				function getCurrentLoc() {
+					navigator.geolocation.getCurrentPosition(success, error);
+
+					function success(position) {
+						latitude = position.coords.latitude;
+						longitude = position.coords.longitude;
+						$('#next-3').removeClass('hidden');
+						$('#current-location-pos').show();
+						$('#current-location-neg').hide();
+						$('#get-location-button').css('margin-bottom', '60px');
+						$('#location-fail-label').css('margin-bottom', '0');
+						$('#location-fail-label').addClass('hidden');
+					}
+					function error() {
+						$('#current-location-pos').hide();
+						$('#current-location-neg').show();
+						$('#get-location-button').css('margin-bottom', '0');
+						$('#location-fail-label').css('margin-bottom', '60px');
+						$('#location-fail-label').removeClass('hidden');
+					}
+				}
+				
+				$('#location').on('keydown', function() {
+					$('.pac-container').attr('class', 'pac-container hdpi');
+					$('.pac-container, .pac-item, .pac-item-selected').css('width', $('#location').width() + 'px');
+				});
+			</script>
+			
+			<div id="last" style="display:none">
+				<div id="signup-resolution" class="create-title" style="font-size:2em;color:#EB5757;font-weight:bold;padding:0;margin:0">
+					Awesome! You can now
+					<a id="open-modal-1" class="page-link" href="#" data-modal="#modal1">
+					login</a>
+				</div>
+			</div>
+		</div>
+		<!-- main END -->
+		
+		<!-- footer -->
+		<div id="footer" class="footer-parent" style="padding-bottom:2.5em">
+			<div class="footer-left">
+				&copy; meetHere<span class="hidden-mobile"> 2017</span><span class="hidden-desktop" style="line-height:1.5em"> '17</span>
+				<a href="#" class="page-link help footer mleft hidden-mobile">Terms</a>
+				<a class="page-link help footer mleft hidden-mobile status" style="cursor:pointer">Status</a>
+				<a href="./help" class="page-link help footer mleft hidden-mobile">Help</a>
+			</div>
+			<div class="footer-right">
+				<a href="#" class="page-link help footer mleft hidden-desktop">Terms</a>
+				<a href="#" class="page-link help footer mleft hidden-desktop status">Status</a>
+				<a href="./help" class="page-link help footer mleft hidden-desktop" style="margin-right:1em">Help</a>
+				<a href="#" class="page-link help footer">Brand</a>
+				<a href="#" class="page-link help footer mleft">Contact</a>
+				<a href="#" class="page-link help footer mleft">About</a>
+			</div>
+		</div>
+		<!-- footer END -->
+
+		<!-- scripts -->
+		<script src="./js/meetHere.min.js"></script>
+		<script src="./js/tooltip.min.js"></script>
+		<script src="./js/cleave.min.js"></script>
+		<script>
+			var cleave = new Cleave('.input-phone', {
+				delimiter: '-',
+				blocks: [3,3,4]
+			});
+		</script>
+		<script>
+			var email, password, fname, lname, phone, uname;
+			var unameStatus = "";
+			// no center-total on signup for mobile
+			(function($) {
+				var $window = $(window),
+					$center = $('#centerEr');
+
+				function resize() {
+					if ($window.width() < 800) {
+						return $center.removeClass('center-total').css('padding-top', '75px');
+					}
+					$center.addClass('center-total');
+				}
+
+				$window
+					.resize(resize)
+					.trigger('resize');
+			})(jQuery);
+
+			$('#uname').focus();
+			$(document).keyup(function(e) {
+
+				email = $('#email').val();
+				password = $('#password').val();
+				fname = $('#fname').val();
+				lname = $('#lname').val();
+				phone = $('#phone').val();
+				uname = $('#uname').val();
+				
+				if (uname != "" && password != "" && unameStatus != "")
+					$('#next-1').removeClass('hidden');
+				if (!(validateUserName(uname)) || password == "" || unameStatus == "")
+					$('#next-1').addClass('hidden');
+
+				if (password == "" || password.length >= 7) {
+					$('#password-name-label').addClass('hidden');
+				} else {
+					$('#password-name-label').removeClass('hidden');
+					$('#password-letter-count').text(7 - password.length);
+					$('#next-1').addClass('hidden');
+				}
+				
+				if (fname != "" && lname != "" && phone != "" && email != "")
+					$('#next-2').removeClass('hidden');
+				if (!(validateName(fname)) || !(validateName(lname)) || !(validatePhone(phone)) || !(validateEmail(email)))
+					$('#next-2').addClass('hidden');
+
+				if(e.which == 13 && !($('#next-1').hasClass('hidden'))){
+					$('#first').slideUp("fast", function() {
+						$('#second').delay(100).slideDown("fast", function() {
+							$('#fname').focus();
+						});
+					});
+				}
+				
+				if(e.which == 13 && !($('#next-2').hasClass('hidden'))){
+					$('#second').slideUp("fast", function() {
+						$('#third').delay(100).slideDown("fast", function() {
+							$('#location').focus();
+						});
+					});
+				}
+
+				if(e.which == 13 && !($('#next-3').hasClass('hidden'))){
+					submit();
+					$('#info-container').slideUp("fast", function() {
+						$('#last').delay(100).slideDown("fast");
+						$('#centerEr').css('text-align', 'center');
+						$('#centerEr').css('padding-top', '0');
+						$('#centerEr').addClass('center-total');
+					});
+				}
+			});
+
+			var capsLetters = false;
+			$('#uname').keyup(function() {
+				$.post('https://meethere.herokuapp.com/usernamecheck', {
+					username: $('#uname').val()
+				}, function(data) {
+					console.log(data.error)
+					/* 0 = uname taken, 1 = uname avaliable, 2 = wrong params */
+					if (data.error == 1) {
+						if ($('#password').val().length >= 7) {
+							$('#next-1').removeClass('hidden');
+							$('#uname').css('border-color', '#000');
+						}
+						unameStatus = "good";
+					} else {
+						$('#next-1').addClass('hidden');
+						unameStatus = "";
+						$('#uname').css('border-color', '#EB5757');
+						if (data.error == 2)
+							$('#uname').css('border-color', '#000');
+					}
+				}, "json"
+				);
+			});
+			$('#next-1').on('touchend || click', function() {
+				$('#first').slideUp("fast", function() {
+					$('#second').delay(100).slideDown("fast", function() {
+						$('#fname').focus();
+					});
+				});
+			});
+			$('#next-2').on('touchend || click', function() {
+				$('#second').slideUp("fast", function() {
+					$('#third').delay(100).slideDown("fast", function() {
+						$('#location').focus();
+					});
+				});
+			});
+			$('#next-3').on('touchend || click', function() {
+				$('#info-container').slideUp("fast", function() {
+					$('#last').delay(100).slideDown("fast");
+					$('#centerEr').css('text-align', 'center');
+					$('#centerEr').css('padding-top', '0');
+					$('#centerEr').addClass('center-total');
+				});
+				submit();
+			})
+
+			function submit() {
+				$.post('https://meethere.herokuapp.com/signup', {
+					username: uname,
+					password: password,
+					fullname: fname.concat(' ').concat(lname),
+					phone: phone,
+					email: email,
+					latitude: latitude,
+					longitude: longitude
+				}, function(data) {
+					data.error;
+					/* 0 = success, 1 = uname taken, 2 = wrong params */
+					//if (data.error == 0)
+					//	window.location.href = './map';
+					if (data.error == 2)
+						$('#signup-resolution').html('Oops! Something went wrong. Please <a id="open-modal-1" class="page-link" href="./sign-up" data-modal="#modal1">retry</a>')
+				}, "json"
+				);
+			}
+			
+			// lets make a footer that auto-to-bottom(s) if other content > window height
+			if (($('#centerEr').position().top + $('#centerEr').outerHeight() - window.innerHeight) <= 0)
+				$('#footer').css('position', 'absolute').css('top', window.innerHeight + 'px');
+		</script>
+
+	<!-- main container END -->
+	</body>
+
+</html>

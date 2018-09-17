@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html class="set set-podd">
+
+	<head>
+
+		<meta charset="utf-8" lang="en">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>meetHere</title>
+
+	<!-- Favicons -->
+		<link rel="apple-touch-icon" sizes="180x180" href="./img/favicons/apple-touch-icon.png">
+		<link rel="icon" type="image/png" href="./img/favicons/favicon-32x32.png" sizes="32x32">
+		<link rel="icon" type="image/png" href="./img/favicons/favicon-16x16.png" sizes="16x16">
+		<link rel="manifest" href="./img/favicons/manifest.json">
+		<link rel="mask-icon" href="https://meetHere.github.io/img/favicons/safari-pinned-tab.svg" color="#eb5757">
+		<link rel="shortcut icon" href="./img/favicons/favicon.ico">
+		<meta name="msapplication-config" content="./img/favicons/browserconfig.xml">
+		<meta name="theme-color" content="#ffffff">
+
+	<!-- Fonts ## we can self-serve later, not all fonts may be used -->
+		<!-- Font Awesome --><script src="https://use.fontawesome.com/f4adeaf9c5.js"></script>
+		<!-- Avenir --><link href="./Avenir/stylesheet.css" rel="stylesheet" type="text/css" media="all">
+
+	<!-- Styles -->
+		<link rel="stylesheet" type="text/css" href="./css/style.min.css">
+		<link rel="stylesheet" type="text/css" href="./css/molekule.min.css">
+		<link rel="stylesheet" type="text/css" href="./css/jquery.powertip-dark.min.css">
+		<link rel="stylesheet" type="text/css" href="./waves/waves.min.css">
+
+	<!-- Scripts -->
+		<script src="https://code.jquery.com/jquery-2.1.4.min.js" podsum="sha256-8WqyJLuWKRBVhxXIL1jBDD7SDxU936oZkCnxQbWwJVw="></script>
+		<script src="./js/pageload.min.js"></script>
+		<script src="./js/jquery.powertip.min.js"></script>
+		<script src="./waves/waves.min.js"></script>
+	</head>
+
+	<body class="animsition">
+		<script>
+			if (location.protocol != 'https:')
+				location.href = 'https:' + window.location.href.substring(window.location.protocol.length);
+		</script>
+
+		<!-- loader -->
+		<div class="se-pre-con">
+			<!--div class="clock">
+				<div class="hand-two">
+					<div style="width:10.5vmin;height:100%;border-radius:0.5vmin;background:#F5AFAF;position:absolute"></div>
+				</div>
+				<div class="inner-clock-parent">
+					<div class="inner-clock">
+						<div class="inner-hand"></div>
+						<div class="hand-one">
+							<div style="width:100%;height:10.5vmin;border-radius:0.5vmin;background:#F5AFAF;position:absolute"></div>
+						</div>
+					</div>
+left: 50%;top: 50%;transform: scale(0.1) translate(-50%, -50%);display: inline-block;-webkit-transform: scale(0.1) translate(-50%, -50%);
+				</div>
+				<div class="clock clock-two" style="top:0;left:-0.5vmin"></div>
+				<div class="clock-loading-label" style="left:50%;transform:translateX(-50%);bottom:-4vmin;position:absolute">Loading...</div>
+			</div-->
+			<div class="img-holder" style="position:absolute;top:42%;transform:translate(-50%,-50%) scale(0.1);-webkit-transform:translate(-50%,-50%) scale(0.1)">
+				<img src="./img/meetHere.svg" style="position: absolute;text-align: center;-webkit-animation: pulser 1s ease-in-out infinite;animation: pulser 1s ease-in-out infinite">
+			</div>
+		</div>
+
+		<script>
+			var init = {
+			  "async": true,
+			  "crossDomain": true,
+			  "url": "https://meethere.herokuapp.com/getfriends",
+			  "method": "POST",
+			  "xhrFields": {
+				  "withCredentials": true
+			  },
+			  "data": {
+			  }
+			}
+
+			$.ajax(init).done(function (e) {
+				if (e.error != 0) {
+					window.location.href = 'https://meethere.herokuapp.com'
+				}
+			});
+		</script>
+
+		<span class="marker marker-1"></span>
+
+		<!-- navbar -->
+		<div class="navbar hero">
+			<div class="col-80 top">
+				<a class="brand logo animsition-link" href="./map"
+				   data-animsition-out-class="fade-out">
+				</a>
+			</div>
+			<div class="nav-links">
+				<span id="profile-image-nav" class="profile-image-nav" style="cursor:pointer">MJ</span>
+				<a id="map-page-help" class="page-link animsition-link help" href="./help" style="font-size:0.75em">
+					Help</a>
+			</div>
+			<div id="mobile-nav-links" class="mob-nav close" style="position:absolute;top:50px;background:#FFF;font-size:0.75em;padding:0 1em 1em 1em;border-radius:0 0 0 0;border:0.1em solid rgba(0,0,0,0.1);border-top:0">
+				<a id="meet" class="profile-title nav-overlay" href="#" style="line-height:1.5em" onclick="meet();">Meet</a>
+				<a id="manage-friends" class="profile-title" href="#" style="line-height:1.5em" onclick="manageFriends();">Friends</a>
+				<a id="preferences" class="profile-title" href="#" style="line-height:1.5em" onclick="preferences();">Preferences</a>
+				<a id="logout" class="profile-title" href="#" style="line-height:1.5em">Log Out</a>
+			</div>
+		</div>
+		
+			<div id="map" style="height:100%;width:100%;z-index:-1"></div>
+			<script>
+				var map, myCenter, latitude, longitude;
+				var clickCounter = 0;
+				var loc = {};
+				var markersArray = [];
+				function myMap() {
+					var mapCanvas = document.getElementById("map");
+					
+					// options to allow passage through 'not now' geolocation choice
+					var geoOptions = {
+						enableHighAccuracy: false,
+						timeout: 2000,
+						maximumAge: 300000
+					};
+					var locSet = false;
+					
+					navigator.geolocation.getCurrentPosition(success, error, geoOptions);
+
+					function success(position) {
+						latitude = position.coords.latitude;
+						longitude = position.coords.longitude;
+						locSet = true;
+						makeDatMap();
+					}
+					function error() {
+						$.post('https://meethere.herokuapp.com/getlocationuser', {
+						}, function(data) {
+							console.log(data);
+							latitude = parseFloat(data.latitude);
+							longitude = parseFloat(data.longitude);
+							locSet = true;
+							makeDatMap();
+						}, "json"
+						);
+					}
+					
+					// if nothing happens, let's just set it to the POST creds
+					setTimeout(function () {
+						if(!locSet){
+							window.console.log("Firefox Bug");
+							error();
+						} else {
+							window.console.log("Location set");
+						}
+					}, geoOptions.timeout + 1000);
+
+					function makeDatMap() {
+						var styles = [
+							{
+								featureType: "all",
+								stylers: [
+									{
+										"lightness": 70
+									}
+								]
+							},
+							{
+								"featureType": "landscape.natural.terrain",
+								"elementType": "geometry",
+								"stylers": [
+									{
+										"visibility": "off"
+									}
+								]
+							},
+							{
+								"featureType": "poi",
+								"elementType": "labels",
+								"stylers": [
+									{
+										"visibility": "off"
+									}
+								]
+							},
+							{
+								"featureType": "poi.business",
+								"elementType": "all",
+								"stylers": [
+									{
+										"visibility": "off"
+									}
+								]
+							},
+							{
+								"featureType": "road",
+								"elementType": "geometry.stroke",
+								"stylers": [
+									{
+										"visibility": "off"
+									}
+								]
+							}
+						];
+						var styledMap = new google.maps.StyledMapType(styles, {name: "Styled Map"});
+
+						var mapOptions = {
+							center: new google.maps.LatLng(latitude, longitude),
+							zoom: 15,
+							disableDefaultUI: true,
+							zoomControl: true
+						}
+
+						map = new google.maps.Map(mapCanvas, mapOptions);
+
+						myCenter = new google.maps.LatLng(latitude, longitude);
+
+						var marker = new RichMarker({
+							position: myCenter,
+							map: map,
+							draggable: false,
+							flat:true,
+							anchor: RichMarkerPosition.MIDDLE,
+							content: '<span class="map-marker" style="opacity:0.25">Me</span>'
+						});
+						markersArray.push(marker);
+
+						map.mapTypes.set('map_style', styledMap);
+						map.setMapTypeId('map_style');
+
+						infowindow = new google.maps.InfoWindow();
+					}
+				}
+			</script>
+			<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBV0Q6zglTeVi36cx0v_QeE0wkiveg97HA&libraries=places&callback=myMap"></script>
+			<script src="./js/richmarker.min.js"></script>
+		
+			<style>
+				.sidenav {
+					height: 100%;
+					background: rgba(238,238,238,0.75);
+					z-index: 1;
+					position: fixed;
+					left: 0;
+					transition: all 0.25s linear;
+					-webkit-transition: all 0.25s linear
+				}
+				@media only screen and (max-width: 799px) {
+					.sidenav {
+						bottom: 0;
+						height: 40%;
+						width: 100%;
+						background: rgba(238,238,238,0.9)
+					}
+				}
+				.sidenav.closed {
+					left: -25%;
+					transition: all 0.25s linear;
+					-webkit-transition: all 0.25s linear
+				}
+				.sidenav.closed .sidenav-display-btn {
+					transform: rotateY(180deg);
+					-webkit-transform: rotateY(180deg)
+				}
+				.hero-type-container {
+					width: 100%;
+					max-height: calc(100% - 1.9em);
+					overflow-y: auto;
+					box-shadow: 0 0px 2px 0 rgba(0, 0, 0, 0.14), 0 0px 15px 0 rgba(0, 0, 0, 0.12), 0 0px 1px -2px rgba(0, 0, 0, 0.2)
+				}
+				.hero-type-row {
+					position: relative;
+					height: 2.5em;
+					width: 90%;
+					padding: 5%;
+					border-bottom: 1px solid #E9E6E3;
+					overflow: hidden;
+					transition: all 0.5s ease;
+					-webkit-transition: all 0.5s ease
+				}
+				.hero-type-row.open {
+					height: 7.5em;
+					transition: all 0.5s ease;
+					-webkit-transition: all 0.5s ease
+				}
+				.hero-type-row > div {
+					position: absolute;
+					display: inline-block
+				}
+				.hero-type-row > div:first-child {
+					position: relative
+				}
+				.hero-type-row > .page-link {
+					margin-top: 0.5em;
+					opacity: 1;
+					color: mediumaquamarine;
+					margin-left: 1.5em
+				}
+				.hero-type-row > .page-link.uber {
+					color: rgba(0, 0, 0, 0.9);
+					display: inline-block;
+					margin-top: 0
+				}
+				.hero-type-row > .page-link.meetHere {
+					color: #EB5757;
+					display: inline-block;
+					margin-top: 0;
+					cursor: pointer
+				}
+				.hero-type-distance {
+					right: 5%
+				}
+				.hero-type-time {
+					right: 5%
+				}
+				.hero-type-rating {
+					position: relative !important;
+					left: -70%
+				}
+				.hero-drop-down {
+					font-size: 1.5em;
+					position: absolute;
+					bottom: 0;
+					right: 5%;
+					cursor: pointer;
+					transition: all 0.5s ease;
+					-webkit-transition: all 0.5s ease
+				}
+				.hero-type-price {
+					position: relative;
+					display: block;
+					width: 5.5em;
+					height: 1.25em
+				}
+				.hero-type-row.open .hero-drop-down {
+					transform: rotate(180deg);
+					-webkit-transform: rotate(180deg);
+					transition: all 0.5s ease;
+					-webkit-transition: all 0.5s ease
+				}
+				.hero-type-rating > span {
+					height: 0.4em;
+					width: 0.4em;
+					border: 1px solid #EB5757;
+					display: inline-block;
+					border-radius: 50%;
+					margin-right: 0.4em
+				}
+				.hero-type-rating > span.filled {
+					background: #EB5757
+				}
+				.hero-type-rating > span.unknown-rating {
+					background: #CCC;
+					border-color: #999;
+					opacity: 0.16
+				}
+				.hero-type-row .chosen-list-horizontal {
+					font-size: 1em;
+					width: 70%;
+					height: 1.75em;
+					margin-bottom: 0;
+					overflow-x: scroll;
+					overflow-y: hidden
+				}
+				.fa-compass {
+					position: absolute;
+					left: -1.43em;
+					line-height: 0.9em
+				}
+				.sidenav-display-btn {
+					position: absolute;
+					left: 100%;
+					width: 1em;
+					height: 2em;
+					line-height: 2em;
+					font-size: 1.5em;
+					text-align: center;
+					box-shadow: 1px 0px 2px rgba(0, 0, 0, 0.1);
+					background: #f0dac5;
+					cursor: pointer
+				}
+			</style>
+		
+			<!-- sidenav -->
+			<div id="sidenav" class="profile col-25 sidenav" style="display:none">
+				<div class="sidenav-display-btn"><i class="fa fa-angle-left"></i></div>
+				<div id="types-of-locs" style="font-size:1.5em;height:1.25em;width:100%;box-sizing:border-box;box-shadow: 0 0 0 0 rgba(0, 0, 0, .14), 0 0 0 0 rgba(0, 0, 0, .12), 0 0 10px -5px rgba(0, 0, 0, .2);">
+					<div class="type-name">
+						<div id="chooseFood" class="type chosen">Food</div>
+					</div>
+					<div class="type-name">
+						<div id="chooseFun" class="type chosen">Fun</div>
+					</div>
+					<div class="type-name">
+						<div id="chooseStudy" class="type chosen">Study</div>
+					</div>
+				</div>
+				<div id="hero-type-container" class="hero-type-container">
+					
+				</div>
+			</div>
+
+			<!-- profile -->
+			<div id="profile" class="profile col-25" style="height:100%;display:inline-block;">
+				<div class="center-total">
+					<!-- navigation -->
+					<div class="profile-image" style="margin-bottom:30px">
+						<div id="profile-image" style="position:relative;top:50%;transform:translateY(-40%);-webkit-transform:translateY(-40%)">MJ</div>
+					</div>
+					<a id="meet" class="profile-title nav-overlay" href="#" onclick="meet();">Meet</a>
+					<a id="manage-friends" class="profile-title" href="#" onclick="manageFriends();">Manage Friends</a>
+					<a id="preferences" class="profile-title" href="#" onclick="preferences();">Preferences</a>
+					<a id="logout" class="profile-title special-logout" href="#">Log Out</a>
+				</div>
+			</div>
+
+			<div id="map-input" class="intro" style="height:100%;display:inline-block;">
+				<div class="center-total">
+					<div class="row">
+						<div class="intro-text">
+							<div class="choose-friends">
+								<!-- title -->
+								<span id="map-title-first">With whom would you like to meet?</span>
+								<br>
+								<div style="width:100%">
+									<!-- container to hold chosen friends (desktop) -->
+									<div id="chosen-list-parent" class="inline hidden-mobile" style="margin-top:40px;width:15%;font-size:0.3em;vertical-align:top;display:none">
+										<!--input style="background:none;width:1vw;max-width:10px;margin-bottom:20px;visibility:hidden" autocomplete="off"-->
+										<div class="button inline" style="visibility:hidden"><i class="fa fa-fa" style="color:#EB5757;line-height:1.75em;vertical-align:top;"></i></div>
+										<div style="overflow-y:auto;max-height:15.5em;">
+											<div id="chosen-list" class="" style="text-align:left;font-size:1.666em">
+											</div>
+										</div>
+									</div>
+									<!-- input container -->
+									<div class="input-container" style="font-size:0.3em;margin-top:40px;width:75%;max-width:500px;display:inline-block">
+										<!--div id="types-of-locs" style="font-size: 2em;height: 1.25em;width: 75vw;max-width: 500px;border: 1px solid #000;box-sizing: border-box;margin-bottom:0.5em">
+											<div class="type-name">
+												<div id="chooseFood" class="type chosen">Food</div>
+											</div>
+											<div class="type-name">
+												<div id="chooseFun" class="type chosen">Fun</div>
+											</div>
+											<div class="type-name">
+												<div id="chooseStudy" class="type chosen">Study</div>
+											</div>
+										</div-->
+										<!-- type to filter friends -->
+										<input id="user" class="password user-adder" placeholder="Start typing to filter" autocorrect="false" spellcheck="false" style="background:none;width:75vw;max-width:500px;margin-bottom:20px;" autocomplete="off">
+										<div class="button inline" style="background:none"></div>
+										<!-- mobile horizontal friend bar -->
+										<div id="aaf" class="chosen-list-horizontal" style="display:none">
+											<div id="rrf" class="chosen-list-container">
+
+											</div>
+										</div>
+										<!-- list of all friends -->
+										<div style="overflow-y:auto;max-height:7.5em;">
+											<!-- friends for map -->
+											<div id="added-list" class="" style="text-align:left;font-size:1.666em">
+												<script>
+													$.post('https://meethere.herokuapp.com/getfriends', {
+													}, function(data) {
+														var friends = data.friends;
+														for (var i = 0; i < friends.length; i++) {
+															$('#added-list').append('<div class="friend">' + friends[i] + '</div>');
+														}
+													}, "json"
+													);
+												</script>
+											</div>
+											<!-- friends to be added in `manage` -->
+											<div id="manage-friends-adder" class="" style="text-align:left;font-size:1.666em;display:none;text-align:center">
+												<div id="friend-tbadded" class="potential-friend" style="display:none"></div><span id="req-confirmation" class="hidden"></span>
+											</div>
+										</div>
+										<div id="pref-panel" class="hidden" style="font-size:2.5em">
+											<div style="position:absolute;left:0;display:inline-block;color:#A0A0A0">Name:</div>
+											<div style="position:absolute;right:0;display:inline-block"><div id="profile-name" style="display:inline-block" contenteditable="true" spellcheck="false" autocomplete="false"></div><i id="name-change-pencil" class="fa fa-pencil" style="margin-left:0.25em;color:mediumaquamarine;font-size:0.625em;cursor:pointer;position:absolute;top:0.4em" onclick="$('#profile-name').focus()"></i><i id="name-change-check" class="fa fa-check hidden" style="margin-left:0.25em;color:#91DCE8;font-size:0.625em;cursor:pointer;position:absolute;top:0.4em" onclick="submitNewName();"></i></div>
+											<br>
+											<div style="position:absolute;left:0;margin-top:1em;color:#A0A0A0">Home Location:</div>
+											<br>
+											<br>
+											<div style="font-size:0.333333em;position:absolute;left:0;width:100%">
+												<div class="input-container" style="text-align:left;width:100%">
+													<input id="location" class="password" placeholder="1600 Pennsylvania Ave" autocorrect="false" spellcheck="false" style="width:100%;text-align:left;margin-bottom:0.5em;padding-top:0.2em;background:transparent">
+												</div>
+												<br>
+												<div style="text-align:left">
+													<div id="get-location-button" class="button-left" onclick="getCurrentLoc();" style="background:#F0DAC5;margin-bottom:60px"><i class="fa fa-location-arrow"></i></div><i id="current-location-pos" class="fa fa-check" style="color:mediumaquamarine;margin-left:0.5em;font-size:2em;display:none"></i><i id="current-location-neg" class="fa fa-times" style="color:#FB5757;margin-left:0.5em;font-size:2em;display:none"></i>
+													<div id="submit-location" class="button-left hidden" style="position:absolute;right:0;background:#91DCE8" onclick="updateLocation()">Set Location</div>
+												</div>
+											</div>
+										</div>
+										<div id="friends-request-name" class="hidden" style="font-size:2.5em;margin-top:0.5em">Users who have added you:</div>
+										<div id="friends-request-list" class="hidden" style="font-size:1.666em;"></div>
+										<br>
+										<div id="next-button" class="support-button password-button material-button inline" style="font-size:1.666666em;margin-top:1em;display:none">Next</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		<!-- intro END -->
+
+		<!-- scripts -->
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/vivus/0.3.2/vivus.min.js'></script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js'></script>
+
+		<script src="./js/meetHere.min.js"></script>
+		
+		<script>
+			var settings = {
+			  "async": true,
+			  "crossDomain": true,
+			  "url": "https://meethere.herokuapp.com/fullname",
+			  "method": "POST",
+			  "xhrFields": {
+				  "withCredentials": true
+			  },
+			  "data": {
+			  }
+			}
+
+			$.ajax(settings).done(function (e) {
+				console.log(e);
+				if (e.error == 0) {
+					$('#profile-name').text(e.fullname);
+					var plo = e.fullname.split(' ');
+					var fLetter = plo[0].charAt(0).toUpperCase();
+					var lLetter = plo[1].charAt(0).toUpperCase();
+					$('#profile-image').text(fLetter + lLetter);
+					$('#profile-image-nav').text(fLetter + lLetter);
+				}
+			});
+			
+			var areFriendRequests = false;
+			function checkForFriends() {
+				$.post('https://meethere.herokuapp.com/getinpending', {
+				}, function(data) {
+					if (data.friends.length > 0) {
+						$('#manage-friends').append('<span id="friends-notif" style="padding:0.25em 0.25em 0.05em;background:#FB5757;color:#FFF;display:inline-block;border-radius:1em;transform:translateX(0.5em) scale(0.75);-webkit-transform:translateX(0.5em) scale(0.75)">' + data.friends.length + '</span>');
+						areFriendRequests = true;
+						for (var i = 0; i < data.friends.length; i++) {
+							$('#friends-request-list').append('<div id="requesting-' + data.friends[i] + '" class="requesting reqComp" style="margin-top:1.5em"><span style="display:block;width:100%"><span class="potential-friend-eq" style="text-align:left">' + data.friends[i] + '</span><span style="position:absolute;right:0;line-height:2.25em"><i class="fa fa-user-plus add-requesting-friend" style="color:mediumaquamarine;cursor:pointer;margin-right:1em;" friend-name="' + data.friends[i] + '"></i><i class="fa fa-user-times reject-requesting-friend" style="color:#FB5757;cursor:pointer" friend-name="' + data.friends[i] + '"></i></span></span></div><br id="requesting-' + data.friends[i] + '-break" class="reqComp">');
+						}
+						
+						$('.add-requesting-friend').on('click', function() {
+							$.post('https://meethere.herokuapp.com/addfriend', {
+								friend: $(this).attr('friend-name')
+							}, function(data) {
+								console.log(data.error);
+								$('.friend-added').click();
+								$('.friend').remove();
+								$.post('https://meethere.herokuapp.com/getfriends', {
+								}, function(data) {
+									var friends = data.friends;
+									for (var i = 0; i < friends.length; i++) {
+										$('#added-list').append('<div class="friend">' + friends[i] + '</div>');
+									}
+								}, "json"
+								);
+							}, "json"
+							);
+						});
+						
+						$('.reject-requesting-friend').on('click', function() {
+							$.post('https://meethere.herokuapp.com/subfriend', {
+								friend: $(this).attr('friend-name')
+							}, function(data) {
+								console.log(data.error);
+							}, "json"
+							);
+						});
+						
+						$('.add-requesting-friend, .reject-requesting-friend').on('click', function() {
+							$('#requesting-' + $(this).attr('friend-name')).remove();
+							$('#requesting-' + $(this).attr('friend-name') + '-break').remove();
+							if ($('.add-requesting-friend').length == 0)
+								$('#friends-request-name').addClass('hidden');
+						});
+					} else {
+						areFriendRequests = false;
+					}
+				}, "json"
+				);
+			}
+			checkForFriends();
+			
+			$(window).load(function() {
+				$('.gm-bundled-control-on-bottom').css('opacity', '0');
+			});
+			
+			var firstPref = 0;
+			
+			function preferences() {
+				if (!($('#preferences').hasClass('nav-overlay'))) {
+					if ($('#manage-friends').hasClass('nav-overlay')) {
+						$('.reqComp').remove();
+						checkForFriends();
+					}
+					$('.nav-overlay').removeClass('nav-overlay');
+					$('#preferences').addClass('nav-overlay');
+					$('#map-title-first').html('Preferences');
+					$('#added-list').hide();
+					$('#user').hide();
+					$('#types-of-locs').addClass('hidden');
+					$('#next-button').hide();
+					$('#chosen-list-parent').hide();
+					$('#manage-friends-adder').hide();
+					$('#friends-request-name').addClass('hidden');
+					$('#friends-request-list').addClass('hidden');
+					$('#pref-panel').removeClass('hidden');
+					if (firstPref == 0) {
+						initAutocomplete();
+						firstPref++;
+					}
+				}
+			}
+			function manageFriends() {
+				if (!($('#manage-friends').hasClass('nav-overlay')))
+					$('#user').val('');
+				$('.nav-overlay').removeClass('nav-overlay');
+				$('#manage-friends').addClass('nav-overlay');
+				$('#map-title-first').html('Add some friends!');
+				$('#added-list').hide();
+				$('#manage-friends-adder').show();
+				$('#user').show();
+				$('#user').attr('placeholder', 'bGanesh').addClass('manage-friends-add');
+				$('#types-of-locs').addClass('hidden');
+				$('#friends-notif').remove();
+				$('#next-button').hide();
+				$('#chosen-list-parent').hide();
+				$('#pref-panel').addClass('hidden');
+				if (areFriendRequests) {
+					$('#friends-request-name').removeClass('hidden');
+					$('#friends-request-list').removeClass('hidden');
+				}
+			}
+			function meet() {
+				if (!($('#meet').hasClass('nav-overlay'))) {
+					if ($('#manage-friends').hasClass('nav-overlay')) {
+						$('.reqComp').remove();
+						checkForFriends();
+					}
+					$('.nav-overlay').removeClass('nav-overlay');
+					$('#meet').addClass('nav-overlay');
+					$('#map-title-first').html('With whom would you like to meet?');
+					$('#added-list').show();
+					$('#manage-friends-adder').hide();
+					$('#user').show();
+					$('#user').attr('placeholder', 'Start typing to filter').removeClass('manage-friends-add').val('');
+					$('#types-of-locs').removeClass('hidden');
+					$('#friends-request-name').addClass('hidden');
+					$('#friends-request-list').addClass('hidden');
+					$('#pref-panel').addClass('hidden');
+					if ($('.friend-added').length > 0) {
+						$('#chosen-list-parent').show();
+						$('#next-button').show();
+					}
+				}
+			}
+			
+			//tooltips for friends 
+			$('.d-friend-bg').powerTip({
+				placement: 'ne',
+				followMouse: true,
+				fadeInTime: 100,
+				closeDelay: 0
+			});
+			$('.d-friend-bg').data('powertip', 'You and ' + $(this).text() + ' are already friends');
+			
+			// mobile navigation
+			$('#profile-image-nav').on('touchend || click', function(e){
+				e.preventDefault();
+				e.stopImmediatePropagation();
+
+				if ($('#mobile-nav-links').hasClass('close'))
+					$('#mobile-nav-links').removeClass('hidden').addClass('open').removeClass('close');
+				else {
+					$('#mobile-nav-links').addClass('close').removeClass('open');
+					setTimeout(function() {
+						$('#mobile-nav-links').addClass('hidden');
+					}, 300)
+				}
+					
+			});
+			
+			$(document).on('touchend || click', function(e){
+				var target = $(e.target);
+				
+				if (!(target.hasClass('mob-nav'))){
+					$('#mobile-nav-links').addClass('close').removeClass('open');
+					setTimeout(function() {
+						$('#mobile-nav-links').addClass('hidden');
+					}, 300)
+				}
+			});
+			
+			$('#map-input').on('click', function() {
+				if (!($('#name-change-parent').hasClass('hidden'))) {
+					if ($('#profile-name').is(':focus')) {
+						$('#profile-name').css('border-bottom', '2px solid #91DCE8');
+						$('#name-change-pencil').addClass('hidden');
+						var v = $('#profile-name').text();
+						if (validateFullName(v) && v.indexOf(' ') > 0 && v.indexOf(' ') < (v.length - 1))
+							$('#name-change-check').removeClass('hidden');
+					} else {
+						$('#profile-name').css('border-bottom', '0px solid #91DCE8');
+						$('#name-change-pencil').removeClass('hidden');
+						$('#name-change-check').addClass('hidden');
+					}
+				}
+			});
+			
+			$('#profile-name').keydown(function(e) {
+				if (e.which == 13)
+					return false;
+			});
+			
+			$('#profile-name').keyup(function() {
+				var v = $('#profile-name').text();
+				if (validateFullName(v) && v.indexOf(' ') > 0 && v.indexOf(' ') < (v.length - 1))
+					$('#name-change-check').removeClass('hidden');
+				else
+					$('#name-change-check').addClass('hidden');
+			});
+			
+			
+			/* 0 = success, 3 = already requested, 1 = multiple people w same username, 2 = already friends, 4 = incorrect params */
+			$('#user').keyup(function() {
+				if ($(this).hasClass('manage-friends-add')) {
+					if ($('#powerTip').length > 0)
+						$.powerTip.destroy();
+					$('#friend-tbadded').hide();
+					var val = $(this).val().trim();
+					if (val == '')
+						$('#friend-tbadded').text('');
+					else
+						$('#friend-tbadded').text(val);
+
+					$.post('https://meethere.herokuapp.com/addfriendtemp', {
+						friend: val
+					}, function(data) {
+						console.log(data.error)
+						lmnsh = data.error;
+						if (data.error == 0) {
+							$('#friend-tbadded').show();
+							if ($('#add-user-notif-button').length == 0)
+								$('#friend-tbadded').append('<i id="add-user-notif-button" class="fa fa-user-plus" style="color:#FB5757;margin-left:0.5em;line-height:1em;font-size:0.625em;vertical-align:middle"></i>');
+							$('#friend-tbadded').removeClass('disabled').removeClass('d-friend-bg').removeClass('d-req-bg');
+						} else {
+							$('#add-user-notif-button').remove();
+							if (data.error != 1 && data.error != 4)
+								$('#friend-tbadded').show();
+							else
+								$('#friend-tbadded').hide();
+							if (data.error == 2) {
+								$('#friend-tbadded').addClass('disabled').addClass('d-friend-bg').removeClass('d-req-bg');
+								$('.d-friend-bg').powerTip({
+									followMouse: true,
+									fadeInTime: 100,
+									closeDelay: 0
+								});
+								$('.d-friend-bg').data('powertip', 'You and <i>' + $('.d-friend-bg').text() + '</i> are already friends');
+							}
+							if (data.error == 3) {
+								$('#friend-tbadded').addClass('disabled').removeClass('d-friend-bg').addClass('d-req-bg');
+								$('.d-req-bg').powerTip({
+									followMouse: true,
+									fadeInTime: 100,
+									closeDelay: 0
+								});
+							$('.d-req-bg').data('powertip', 'You have already requested <i>' + $('.d-req-bg').text() + '</i>');
+							}
+						}
+					}, "json"
+					);
+				}
+			});
+			
+			$('#friend-tbadded').on('click', function() {
+				if (!($(this).hasClass('disabled'))) {
+					$.post('https://meethere.herokuapp.com/addfriend', {
+						friend: $('#user').val().trim()
+					}, function(data) {
+						console.log(data.error);
+						$('#req-confirmation').text("You've added " + $('#user').val().trim() + " :-)").removeClass('hidden');
+						setTimeout(function() {
+							$('#req-confirmation').addClass('close-o');
+						}, 1000);
+						setTimeout(function() {
+							$('#req-confirmation').addClass('hidden').removeClass('close-o');
+						}, 1300);
+						$('#user').val('').val('');
+						$('#friend-tbadded').hide().text('');
+					}, "json"
+					);
+				}
+			})
+
+			$('#logout').on('click', function() {
+				$.get('./logout', {
+				}, function(data) {
+					window.location.reload();
+				});
+			})
+
+			$('.special-logout').on('click', function() {
+				$.get('./logout', {
+				}, function(data) {
+					window.location.reload();
+				});
+			})
+			
+			var placeSearch, autocomplete, newLat, newLong;
+
+			function initAutocomplete() {
+				autocomplete = new google.maps.places.Autocomplete(
+					(document.getElementById('location')),
+					{types: ['geocode']}
+				);
+
+				autocomplete.addListener('place_changed', getCoors);
+			}
+			
+			function getCoors() {
+				var place = autocomplete.getPlace();
+				newLat = place.geometry.location.lat();
+				newLong = place.geometry.location.lng();
+				$('#submit-location').removeClass('hidden');
+			}
+
+			function getCurrentLoc() {
+				navigator.geolocation.getCurrentPosition(success, error);
+
+				function success(position) {
+					newLat = position.coords.latitude;
+					newLong = position.coords.longitude;
+					$('#submit-location').removeClass('hidden');
+					$('#current-location-pos').show();
+					$('#current-location-neg').hide();
+				}
+				function error() {
+					$('#current-location-pos').hide();
+					$('#current-location-neg').show();
+				}
+			}
+			
+			function updateLocation() {
+				$.post('https://meethere.herokuapp.com/updatelocation', {
+					latitude: newLat,
+					longitude: newLong
+				}, function(data) {
+					window.location.reload();
+				}, "json"
+				);
+			}
+
+			$('#location').on('keydown', function() {
+				$('.pac-container')/*.attr('class', 'pac-container hdpi')*/.css('padding', '0').css('margin', '0');
+				$('.pac-container, .pac-item, .pac-item-selected').css('width', $('#location').width() + 'px');
+			});
+			
+		Waves.attach('.friend');
+		Waves.init();
+		$('#map').attr('class', 'fixed');
+
+		// no center-total on svg for mobile
+		(function($) {
+			var $window = $(window),
+				$profile = $('#profile'),
+				$mapInput = $('#map-input'),
+				$mobilePro = $('.profile-image-nav');
+
+			function resize() {
+				if ($window.width() < 800) {
+					$profile.remove();
+					$('#chosen-list').remove();
+					$('#rrf').attr('id', 'chosen-list');
+					$('#chosen-list-parent').remove();
+					$('#aaf').attr('id', 'chosen-list-parent');
+					$('#mobile-nav-links').css('left', $('.nav-links').position().left + $mobilePro.width() / 2 - $('#mobile-nav-links').width() / 2 + 'px');
+					$('#map-input').css('width', '100%')
+				} else {
+					$mapInput.addClass('col-75');
+					$mobilePro.hide();
+					$('#mobile-nav-links').remove();
+					$('.chosen-list-horizontal:not(.hero-type-name)').remove();
+				}
+			}
+
+			$window
+				.resize(resize)
+				.trigger('resize');
+		})(jQuery);
+
+		var addedFriends = 1;
+
+		$('#user').keyup(function() {
+			var $avora = $('.friend:not(.friend-added)');
+
+			var val = $.trim(this.value).toUpperCase();
+			if (val === '')
+				$avora.show();
+			else {
+				$avora.hide();
+				$avora.filter(function() {
+					return -1 != $(this).text().toUpperCase().indexOf(val); }).show();
+			}
+		});
+		var bounds;
+		$('#added-list').on('click', '.friend', function() {
+			var $friend = $(this); /* required for POST changes */
+			$.post('https://meethere.herokuapp.com/getlocation', {
+				friend: $(this).text()
+			}, function(data) {
+				loc[$friend.text()] = new google.maps.LatLng(parseFloat(data.latitude), parseFloat(data.longitude));
+				console.log(loc[$friend.text()]);
+
+				$friend.addClass('friend-added').attr('id', addedFriends);
+				$('#chosen-list').prepend($friend);
+
+				var color = ['', 'marker-1', 'marker-2'];
+				var marker = new RichMarker({
+					position: loc[$friend.text()],
+					map: map,
+					draggable: false,
+					flat:true,
+					anchor: RichMarkerPosition.MIDDLE,
+					content: '<span id="' + addedFriends + '-marker" class="map-marker ' + color[Math.floor(Math.random() * color.length + 1)] +
+					'" style="opacity:0.25">' + $friend.text() + '</span>'
+				});
+
+				markersArray.push(marker);
+
+				bounds = new google.maps.LatLngBounds();
+				for (var i = 0; i < markersArray.length; i++) {
+					bounds.extend(markersArray[i].getPosition());
+				}
+
+				map.setCenter(bounds.getCenter());
+
+				map.fitBounds(bounds);
+
+				$('#next-button').show();
+				$('#chosen-list-parent').show("fast");
+				addedFriends++;
+			}, "json"
+			);
+		});
+		$('#chosen-list').on('click', '.friend', function() {
+			$(this).removeClass('friend-added');
+			$('#added-list').prepend(this);
+
+			var id = $(this).attr('id');
+			$('#' + id + '-marker').remove();
+
+			markersArray[parseInt(id, 10)] = new RichMarker({
+					position: myCenter,
+					map: map,
+					draggable: false,
+					flat:true,
+					anchor: RichMarkerPosition.MIDDLE,
+					content: ''
+				});
+
+			bounds = new google.maps.LatLngBounds();
+			for (var i = 0; i < markersArray.length; i++) {
+				bounds.extend(markersArray[i].getPosition());
+			}
+
+			map.setCenter(bounds.getCenter());
+
+			map.fitBounds(bounds);
+
+			if ($('.friend-added').length == 0) {
+				$('#next-button').hide();
+				$('#chosen-list-parent').hide("fast");
+				map.setZoom(15);
+			}
+		});
+			
+		var angleClicked = false;
+		var appliedCenter;
+		var appliedCenterDistance;
+		var samePlace;
+		$('#next-button').on('click', function() {
+			showAllMapStuff();
+		});
+			
+		function showAllMapStuff() {
+			if ($(window).width() < 800)
+				$('#map').css('height', '60%');
+			$('.choose-friends, .profile, .navbar').slideUp("fast");
+			$('.map-marker').addClass('larger-marker').attr('style', '');
+			
+			// show zooms again
+			$('.gm-bundled-control-on-bottom').css('opacity', '1');
+			
+			// add reload button
+			var t = $("[title='Zoom in']").parent().parent().parent().position().top; //top
+			var l = $("[title='Zoom in']").parent().parent().parent().position().left; //left
+			var wd = $("[title='Zoom in']").width(); //width
+			var he = $("[title='Zoom in']").height(); //height
+			var fs = $("[title='Zoom in']").height() / 5 * 3; //icon font size
+			var fsd = fs / 5 * 2; //icon top/left
+
+			$('body').prepend('<div id="bumpReload" style="position:fixed;' 			+
+							  'top:' + (t-he/1.6) + 'px;' 								+
+							  'left:' + (l+wd/2.83) + 'px;' 							+
+							  'width:' + wd + 'px;' 									+
+							  'height:' + he + 'px;' 									+
+							  'background:#EB5757;'										+
+							  'box-shadow: rgba(0, 0, 0, 0.298039) 0px -1px 5px -1px;'	+
+							  'border-radius: 2px 2px 0 0;'								+
+							  'cursor:pointer;'											+
+							  'z-index:1"'												+
+							  'onclick="window.location.reload()">'						+
+							  		'<i class="fa fa-repeat"'							+
+							  		'style="font-size:' + fs + 'px;' 					+
+							  		'position:absolute;' 								+
+							  		'left:' + (fsd/0.95) + 'px;'						+
+							  		'top:' + (fsd/1.1) + 'px;'							+
+							  		'cursor:pointer">'									+
+									'</i>'												+
+							  '</div>');
+			
+			appliedCenter = map.getCenter();
+			
+			appliedCenterDistance = parseFloat(getDistanceFromUser(appliedCenter).substring(0,3));
+			
+			// mark center
+			var marker = new RichMarker({
+				position: map.getCenter(),
+				map: map,
+				draggable: false,
+				flat:true,
+				anchor: RichMarkerPosition.MIDDLE,
+				content: '<span class="blue-marker"></span>'
+			});
+
+			// mark line from current pos to center
+			var path = [
+				myCenter,
+				map.getCenter()
+			];
+			var linePath = new google.maps.Polyline({
+				path: path,
+				geodesic: true,
+				strokeColor: '#A0A0A0',
+				strokeOpacity: 0.25,
+				strokeWeight: 1
+			});
+
+			linePath.setMap(map);
+
+			// mark line from each marker to center
+			$('.friend-added').each(function() {
+				path = [
+					loc[$(this).text()],
+					map.getCenter()
+				];
+				linePath = new google.maps.Polyline({
+					path: path,
+					geodesic: true,
+					strokeColor: '#A0A0A0',
+					strokeOpacity: 0.25,
+					strokeWeight: 1
+				});
+
+				linePath.setMap(map);
+			});
+
+			// add local places
+			var places = new google.maps.places.PlacesService(map);
+			
+			// study
+			places.nearbySearch({
+				location: map.getCenter(),
+				rankBy: google.maps.places.RankBy.DISTANCE,
+				types: [ 'cafe' ]
+			}, function(results, status) {
+				resturantCallback(results, status, 'type-study');
+			});
+			places.nearbySearch({
+				location: map.getCenter(),
+				rankBy: google.maps.places.RankBy.DISTANCE,
+				types: [ 'library' ]
+			}, function(results, status) {
+				resturantCallback(results, status, 'type-study');
+			});
+			
+			// food
+			places.nearbySearch({
+				location: map.getCenter(),
+				rankBy: google.maps.places.RankBy.DISTANCE,
+				types: [ 'restaurant' ]
+			}, function(results, status) {
+				resturantCallback(results, status, 'type-food');
+			});
+			places.nearbySearch({
+				location: map.getCenter(),
+				rankBy: google.maps.places.RankBy.DISTANCE,
+				types: [ 'meal_takeaway' ]
+			}, function(results, status) {
+				resturantCallback(results, status, 'type-food');
+			});
+			/*places.nearbySearch({
+				location : map.getCenter(),
+				rankBy: google.maps.places.RankBy.DISTANCE,
+				types : [ 'cafe' ]
+			}, function(results, status) {
+				resturantCallback(results, status, 'type-food');
+			});*/
+			places.nearbySearch({
+				location: map.getCenter(),
+				rankBy: google.maps.places.RankBy.DISTANCE,
+				types: [ 'bar' ]
+			}, function(results, status) {
+				resturantCallback(results, status, 'type-food');
+			});
+			
+			// fun
+			places.nearbySearch({
+				location: map.getCenter(),
+				rankBy: google.maps.places.RankBy.DISTANCE,
+				types: [ 'amusement_park' ]
+			}, function(results, status) {
+				resturantCallback(results, status, 'type-fun');
+			});
+			places.nearbySearch({
+				location: map.getCenter(),
+				rankBy: google.maps.places.RankBy.DISTANCE,
+				types: [ 'aquarium' ]
+			}, function(results, status) {
+				resturantCallback(results, status, 'type-fun');
+			});
+			places.nearbySearch({
+				location: map.getCenter(),
+				rankBy: google.maps.places.RankBy.DISTANCE,
+				types: [ 'art_gallery' ]
+			}, function(results, status) {
+				resturantCallback(results, status, 'type-fun');
+			});
+			places.nearbySearch({
+				location: map.getCenter(),
+				rankBy: google.maps.places.RankBy.DISTANCE,
+				types: [ 'casino' ]
+			}, function(results, status) {
+				resturantCallback(results, status, 'type-fun');
+			});
+			places.nearbySearch({
+				location: map.getCenter(),
+				rankBy: google.maps.places.RankBy.DISTANCE,
+				types: [ 'shopping_mall' ]
+			}, function(results, status) {
+				resturantCallback(results, status, 'type-fun');
+			});
+			places.nearbySearch({
+				location: map.getCenter(),
+				rankBy: google.maps.places.RankBy.DISTANCE,
+				types: [ 'night_club' ]
+			}, function(results, status) {
+				resturantCallback(results, status, 'type-fun');
+			});
+			places.nearbySearch({
+				location: map.getCenter(),
+				rankBy: google.maps.places.RankBy.DISTANCE,
+				types: [ 'movie_theater' ]
+			}, function(results, status) {
+				resturantCallback(results, status, 'type-fun');
+			});
+
+			function resturantCallback(results, status, type) {
+				if (status === google.maps.places.PlacesServiceStatus.OK) {
+					for (var i = 0; i < 9; i++) {
+						createMarker(results[i], type);
+					}
+				}
+			}
+
+			var markersMade = 0;
+			var allPlaces = [];
+			function createMarker(place, type) {
+				var placeLoc = place.geometry.location;
+
+				var lat1 = place.geometry.location.lat();
+				var lat2 = bounds.getCenter().lat();
+				var lon1 = place.geometry.location.lng();
+				var lon2 = bounds.getCenter().lng();
+
+				var R = 6371e3; // metres
+				var φ1 = lat1.toRadians();
+				var φ2 = lat2.toRadians();
+				var Δφ = (lat2-lat1).toRadians();
+				var Δλ = (lon2-lon1).toRadians();
+
+				var a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+						Math.cos(φ1) * Math.cos(φ2) *
+						Math.sin(Δλ/2) * Math.sin(Δλ/2);
+				var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+				var distance = R * c;
+				var opp = 800 / distance;
+				if (opp < 0.2)
+					opp = 0.2;
+
+				var marker = new RichMarker({
+					position: place.geometry.location,
+					map: map,
+					draggable: false,
+					flat: true,
+					anchor: RichMarkerPosition.MIDDLE,
+					content: '<span class="map-marker marker-res ' + type + ' open-' + markersMade + '" data-map-item="open-' + markersMade + '" style="cursor:pointer;opacity:' + opp + '">' + place.name + '</span>',
+					dataMapItem: 'open-' + markersMade
+				});
+				
+				// get ratings
+				var ratingText = '<span class="unknown-rating"></span><span class="unknown-rating"></span><span class="unknown-rating"></span><span class="unknown-rating"></span><span class="unknown-rating"></span>';
+				if (place.rating != null) {
+					var rating = place.rating;
+
+					if (rating < 0.5)
+						ratingText = '<span></span><span></span><span></span><span></span><span></span>';
+					else if (rating < 1.5)
+						ratingText = '<span class="filled"></span><span></span><span></span><span></span><span></span>';
+					else if (rating < 2.5)
+						ratingText = '<span class="filled"></span><span class="filled"></span><span></span><span></span><span></span>';
+					else if (rating < 3.5)
+						ratingText = '<span class="filled"></span><span class="filled"></span><span class="filled"></span><span></span><span></span>';
+					else if (rating < 4.5)
+						ratingText = '<span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span><span></span>';
+					else
+						ratingText = '<span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span>';
+				}
+				
+				// get price level
+				var priceText = '<img src="https://img.shields.io/badge/price_level-%3F-lightgrey.svg?style=flat-square" style="opacity:0.08">';
+				if (place.price_level != null) {
+					var price = place.price_level;
+					var priceColor;
+
+					if (price > 4)
+						priceColor = 'c00';
+					else if (price > 3)
+						priceColor = 'f80';
+					else if (price > 2)
+						priceColor = 'fb3';
+					else if (price > 1)
+						priceColor = '00c851';
+					else
+						priceColor = '33b5e5';
+
+					priceText = '<img src="https://img.shields.io/badge/price_level-' + price + '-' + priceColor + '.svg?style=flat-square">';
+				}
+				/*
+				// uber url
+				var uberClientId = 'hdwkXWTAHrp-70iHVu6X61yQiuRz0p6t';
+				var uberURL = "https://m.uber.com/sign-up?";
+				uberURL += "client_id=" + uberClientId;
+				uberURL += "&" + "pickup_latitude=" + latitude;
+				uberURL += "&" + "pickup_longitude=" + longitude;
+				uberURL += "&" + "dropoff_latitude=" + place.geometry.location.lat();
+				uberURL += "&" + "dropoff_longitude=" + place.geometry.location.lng();
+				uberURL += "&" + "dropoff_nickname=" + place.name;
+				*/
+				// let's add the navbar items
+				$('#hero-type-container')
+					.append('<div class="hero-type-row ' + type + ' type-row-' + markersMade + '">'									+
+								'<div class="hero-type-name chosen-list-horizontal">' 												+ 
+									'<div class="chosen-list-container">' 															+ 
+										'<div>' + place.name + '</div>'																+
+									'</div>'																						+ 
+								'</div>'																							+
+								'<div class="hero-type-distance distance-place-' + markersMade + '">' + getDistanceFromCenter(place.geometry.location) + '</div>'		+
+								'<div class="hero-type-rating">'																	+
+									ratingText																						+
+								'</div>'																							+
+								'<span class="hero-drop-down fa fa-angle-down open-' + markersMade + '" data-map-item="open-' + markersMade + '"></span>'	+
+								'<span class="hero-type-price">' + priceText + '</span>'											+
+								/*'<a class="page-link help" href="https://www.google.com/maps/dir/Current+Location/' + place.geometry.location.lat() + ',' + place.geometry.location.lng() + '" target="_blank"><i class="fa fa-compass"></i> Directions</a>'	+
+								'<br>'																								+
+								'<a class="page-link help uber" href="' + uberURL + '" target="_blank"><img src="./img/uber-icon.png" style="height:1em;position:absolute;left:-1.5em;line-height:1em;height:1em;vertical-align:middle;"> Get a ride</a>'	+
+								'<br>'																								+
+								'<a class="page-link help meetHere" target="_blank"><img src="./img/meetHere-spec-red.svg" style="height:1em;position:absolute;left:-1.35em;line-height:1em;height:1em;vertical-align:middle;fill:#EB5757"> meetHere</a>'	+*/
+							'</div>'
+						   );
+				
+				allPlaces[markersMade] = place;
+				
+				orderByDistance(markersMade);
+				colorByDistance(markersMade);
+				
+				google.maps.event.addListener(marker, 'click', function() {
+					/*
+					var rating = '';
+					if (place.rating != null) {
+						var rating = place.rating;
+						var color;
+
+						if (rating < 1)
+							color = 'c00';
+						else if (rating < 2)
+							color = 'f80';
+						else if (rating < 3)
+							color = 'fb3';
+						else if (rating < 4)
+							color = '00c851';
+						else
+							color = '33b5e5';
+
+						rating = '<span><img src="https://img.shields.io/badge/rating-' + rating + '-' + color + '.svg?style=flat-square"</span><br>';
+					}
+
+					var price = '';
+					if (place.price_level != null) {
+						var price = place.price_level;
+						var color;
+
+						if (price > 4)
+							color = 'c00';
+						else if (price > 3)
+							color = 'f80';
+						else if (price > 2)
+							color = 'fb3';
+						else if (price > 1)
+							color = '00c851';
+						else
+							color = '33b5e5';
+
+						price = '<span><img src="https://img.shields.io/badge/price_level-' + price + '-' + color + '.svg?style=flat-square"</span><br>';
+					}
+
+					infowindow.setContent(rating + price + '<span class="time" style="font-family:Avenir;color:#EB5757"></span><br><a class="map-link" href="https://www.google.com/maps/dir/Current+Location/' + place.geometry.location.lat() + ',' + place.geometry.location.lng() + '" style="font-family:Avenir;color:#91DCE8;text-decoration:none" target="_blank"><i class="fa fa-compass"></i> <i class="fa fa-car"></i> directions</a><br><div class="uber"></div><hr style="height:1px;margin:0;visibility:hidden">');
+
+
+					var directions = new google.maps.DirectionsService();
+					var dirRequest = {
+						origin: myCenter,
+						destination: place.geometry.location,
+						travelMode: google.maps.DirectionsTravelMode.DRIVING
+					};
+					directions.route(dirRequest, function(response, status) {
+						if (status === 'OK') {
+							var point = response.routes[0].legs[0];
+							$('.time').text(point.duration.text + ' (' + point.distance.text + ')');
+						}
+					});
+					*/
+					if (clickCounter % 2 == 1 && this == samePlace) {
+						map.setCenter(bounds.getCenter());
+						map.fitBounds(bounds);
+						map.setZoom(14);
+						if (!(angleClicked)) {
+							$('.hero-drop-down.' + this.dataMapItem).parent().toggleClass('open');
+							var container = $('#hero-type-container'),
+    							scrollTo = $('.hero-drop-down.' + this.dataMapItem).parent();
+							container.animate({
+								scrollTop: scrollTo.offset().top - container.offset().top + container.scrollTop()
+							});
+						}
+					} else {
+						map.setCenter(place.geometry.location);
+						map.setZoom(18);
+						if (!(angleClicked)) {
+							$('.hero-drop-down').parent().removeClass('open');
+							$('.hero-drop-down.' + this.dataMapItem).parent().toggleClass('open');
+							var container = $('#hero-type-container'),
+    							scrollTo = $('.hero-drop-down.' + this.dataMapItem).parent();
+							container.animate({
+								scrollTop: scrollTo.offset().top - container.offset().top + container.scrollTop()
+							});
+						}
+						samePlace = this;
+					}
+					angleClicked = false;
+					clickCounter++;
+				});
+				markersMade++;
+			}
+
+			map.setZoom(14);
+			
+			// allow map manipulation
+			$('#map').css('z-index', '0');
+			
+			$('#sidenav').slideDown('fast');
+		}
+			
+		var timeout = 600;
+		function getDirInfo(place, num) {
+			var directions = new google.maps.DirectionsService();
+			var dirRequest = {
+				origin: myCenter,
+				destination: place.geometry.location,
+				travelMode: google.maps.DirectionsTravelMode.DRIVING
+			};
+			directions.route(dirRequest, function(response, status) {
+				if (status === 'OK') {
+					var point = response.routes[0].legs[0];
+					$('.distance-' + num).text(point.distance.text);
+					$('.time-' + num).text(point.duration.text);
+				}
+				else {
+					if (status == "OVER_QUERY_LIMIT") {
+						setTimeout(function() { 
+							getDirInfo(place, num); 
+						}, (timeout));
+					}
+				}
+			});
+		}
+			
+		function getDistanceFromUser(pl) {
+			var lat1 = myCenter.lat();
+			var lat2 = pl.lat();
+			var lon1 = myCenter.lng();
+			var lon2 = pl.lng();
+
+			var R = 6371e3; // metres
+			var φ1 = lat1.toRadians();
+			var φ2 = lat2.toRadians();
+			var Δφ = (lat2-lat1).toRadians();
+			var Δλ = (lon2-lon1).toRadians();
+
+			var a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+					Math.cos(φ1) * Math.cos(φ2) *
+					Math.sin(Δλ/2) * Math.sin(Δλ/2);
+			var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+			var distance = R * c;
+
+			var miles = distance * 0.000621371192237;
+			var milesFormatted = (Math.round(miles * 10) / 10).toFixed(1) + ' mi';
+			return milesFormatted;
+		}
+			
+		function getDistanceFromCenter(pl) {
+			var lat1 = appliedCenter.lat();
+			var lat2 = pl.lat();
+			var lon1 = appliedCenter.lng();
+			var lon2 = pl.lng();
+
+			var R = 6371e3; // metres
+			var φ1 = lat1.toRadians();
+			var φ2 = lat2.toRadians();
+			var Δφ = (lat2-lat1).toRadians();
+			var Δλ = (lon2-lon1).toRadians();
+
+			var a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+					Math.cos(φ1) * Math.cos(φ2) *
+					Math.sin(Δλ/2) * Math.sin(Δλ/2);
+			var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+			var distance = R * c;
+
+			var miles = distance * 0.000621371192237;
+			var milesFormatted = (Math.round(miles * 10) / 10).toFixed(1) + ' mi';
+			return milesFormatted;
+		}
+			
+		function orderByDistance(num) {
+			var currentDistanceText = $('.type-row-' + num).find('.hero-type-distance').text().substring(0, 3);
+			var currentDistance = parseFloat(currentDistanceText);
+			if (num > 0) {
+				var prevDistanceText = $('.type-row-' + (num - 1)).find('.hero-type-distance').text().substring(0, 3);
+				var prevDistance = parseFloat(prevDistanceText);
+				if (currentDistance < prevDistance) {
+					$('.type-row-' + (num)).insertBefore($('.type-row-' + (num - 1)));
+					$('.type-row-' + num).addClass('to-lower').removeClass('type-row-' + num);
+					$('.type-row-' + (num - 1)).addClass('to-increase').removeClass('type-row-' + (num - 1));
+					
+					$('.to-lower').addClass('type-row-' + (num - 1)).removeClass('to-lower');
+					$('.to-increase').addClass('type-row-' + num).removeClass('to-increase');
+					orderByDistance((num - 1));
+				}
+			}
+		}
+		
+		function colorByDistance(num) {
+			var currentDistanceText = $('.distance-place-' + num).text().substring(0, 3);
+			var currentDistance = parseFloat(currentDistanceText);
+			if (currentDistance / appliedCenterDistance <= 0.5)
+				$('.distance-place-' + num).css('color', '#6FCF97');
+			else if (currentDistance / appliedCenterDistance <= 1)
+				$('.distance-place-' + num).css('color', '#F2994A');
+			else
+				$('.distance-place-' + num).css('color', '#EB5757');
+		}
+			
+		$('.type').on('click', function() {
+			$(this).toggleClass('chosen');
+		});
+			
+		$('#chooseFood').on('click', function() {
+			$('.type-food').toggleClass('hidden');
+		});
+			
+		$('#chooseFun').on('click', function() {
+			$('.type-fun').toggleClass('hidden');
+		});
+			
+		$('#chooseStudy').on('click', function() {
+			$('.type-study').toggleClass('hidden');
+		});
+			
+		$('#hero-type-container').on('click', '.hero-drop-down', function() {
+			$(this).parent().toggleClass('open');
+			angleClicked = true;
+			$('.map-marker.' + $(this).attr('data-map-item')).click();
+		});
+			
+		$('.sidenav-display-btn').on('click', function() {
+			$('#sidenav').toggleClass('closed');
+		})
+			
+		if (typeof(Number.prototype.toRadians) === "undefined") {
+			Number.prototype.toRadians = function() {
+				return this * Math.PI / 180;
+			}
+		}
+		</script>
+
+	<!-- main container END -->
+	</body>
+
+</html>

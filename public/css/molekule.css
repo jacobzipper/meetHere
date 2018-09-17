@@ -1,0 +1,315 @@
+/**
+ **	/Molekule::this
+ **	    |--molekule.css of the Molekule.mlk package for iOS and Android applications.
+ **	    |--molekule.css is to be used by your setup.m, setup.h, app.java, app.js, app.py, or any web languages.
+ **
+ **	(c) A. H. for MeetHere, Hewlett-Packard, Medium, and PW
+ **	Licensed OPEN-SOURCE under the MIT License ("the license"). Free for personal and non-profitable distributive use.
+ **	Please refer to the license for more details. Lol this is such an old PoS.
+ **
+ **	Count: 843, teasale, encsum, podd.
+ **/
+
+/********************************************************/
+/** NOTE: cut down substantially for meetHere b/c lazy **/
+/********************************************************/
+
+/* global */
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	height: 100%	
+}
+
+a,
+a:hover,
+a:active,
+a:visited,
+button {
+	text-decoration: none;
+	border-bottom: 1px solid
+}
+
+input,
+input:focus,
+button,
+button:focus,
+div[contenteditable=true] {
+	outline: none;
+	-webkit-outline: none;
+}
+
+a,
+a:hover,
+a:active,
+input,
+input:focus,
+div,
+div:hover,
+div:active,
+button,
+div[contenteditable=true] {
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+	-webkit-border-radius:0px
+}
+
+div[contenteditable=true],
+div[contenteditable=true]:focus {
+	transition: all 0.08s ease;
+	-webkit-transition: all 0.08s ease
+}
+
+div[contenteditable=true] > * {
+	display: inline
+}
+
+/* banners */
+
+.hero {
+	position: fixed
+}
+
+.navbar {
+	width: 100vw;
+	height: 50px;
+	line-height: 50px;
+	background: white;
+	opacity: 0.95
+}
+
+.hero .navbar {
+	top: 0
+}
+
+.full-page-banner {
+	width: 100vw;
+	height: 100vh
+}
+
+.brand {
+	vertical-align: middle;
+	padding-left: 5%
+}
+
+.row {
+	text-align: center
+}
+
+.center-total {
+	position: relative;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	text-align: center
+}
+
+.unit {
+	clear: both;
+	padding: 0 50px;
+	-webkit-background-size: cover;
+	-moz-background-size: cover;
+	-o-background-size: cover;
+	background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+	position: relative
+}
+
+.unit-lg {
+	padding: 100px 50px
+}
+
+.unit-lg-rel {
+	padding: 200px 150px
+}
+
+.unit-lg-rel.low {
+	padding-top: 100px;
+	padding-bottom: 75px
+}
+
+.unit-md {
+	padding: 50px 50px
+}
+
+.unit-sm {
+	padding: 50px 25px
+}
+
+@media only screen and (max-width: 799px) {
+	.unit-lg-rel {
+		padding: 50px 0
+	}
+	.unit-lg-rel.low {
+		padding-top: 0;
+		padding-bottom: 0;
+		padding: 50px 0
+	}
+}
+
+.mg-md {
+	margin-top: 10px;
+	margin-bottom: 20px
+}
+
+.text-center {
+	text-align: center;
+}
+
+.parallax-bg {
+	background-attachment: fixed
+}
+
+/* brk */
+
+.spacer {
+	margin-right: 30px
+}
+
+.hidden {
+	display: none !important
+}
+
+.extra-hidden {
+	display: none !important
+}
+
+.visible {
+	display: inherit !important
+}
+
+.block {
+	display: block
+}
+
+.inline {
+	display: inline-block
+}
+
+.fixed {
+	position: fixed !important
+}
+
+/* brand */
+
+.logo {
+    vertical-align: middle;
+    width: 2em;
+    height: 2em;
+    line-height: 2em;
+    display: inline-block;
+    background-size: contain;
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+/* columns: 10-15-20-25-
+		    30-40-50-60-70-
+		    75-80-85-90
+*/
+
+.col-10, .col-15, .col-20, .col-25, .col-30, .col-40, .col-50, .col-60, .col-70, .col-75, .col-80, .col-85, .col-90 {
+	float: left
+}
+
+.col-10 {
+	width: 10vw
+}
+
+.col-15 {
+	width: 15vw
+}
+
+.col-20 {
+	width: 20vw
+}
+
+.col-25 {
+	width: 25vw
+}
+
+.col-30 {
+	width: 30vw
+}
+
+.col-40 {
+	width: 40vw
+}
+
+.col-50 {
+	width: 50vw
+}
+
+.col-60 {
+	width: 60vw
+}
+
+.col-70 {
+	width: 70vw
+}
+
+.col-75 {
+	width: 75vw
+}
+
+.col-80 {
+	width: 80vw
+}
+
+.col-85 {
+	width: 85vw
+}
+
+.col-90 {
+	width: 90vw
+}
+
+.col-100 {
+	width: 100vw
+}
+
+/* rows: 25-30-40-50-
+		 60-70-75-80-
+		 90-100
+*/
+.row-25 {
+	height: 25vh
+}
+.row-30 {
+	height: 30vh
+}
+
+.row-40 {
+	height: 40vh
+}
+
+.row-50 {
+	height: 50vh
+}
+
+.row-60 {
+	height: 60vh
+}
+
+.row-70 {
+	height: 70vh
+}
+
+.row-75 {
+	height: 75vh
+}
+
+.row-80 {
+	height: 80vh
+}
+
+.row-90 {
+	height: 90vh
+}
+
+.row-100 {
+	height: 100vh
+}
